@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Loader2, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { profileApi } from '@/modules/profile/api/profile.api';
@@ -14,6 +14,11 @@ export const AvatarUpload = ({ currentAvatarUrl, userInitials = '??', onUploadSu
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(currentAvatarUrl);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Keep preview in sync if parent re-fetches user data
+  useEffect(() => {
+    setPreviewUrl(currentAvatarUrl);
+  }, [currentAvatarUrl]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

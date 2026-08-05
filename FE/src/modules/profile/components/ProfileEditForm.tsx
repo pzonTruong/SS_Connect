@@ -34,7 +34,13 @@ export const ProfileEditForm = ({ defaultValues, onSuccess }: ProfileEditFormPro
   const onSubmit = handleSubmit(async (values) => {
     setSaving(true);
     try {
-      await profileApi.updateProfile(values);
+      // Convert empty strings → undefined so optional validators pass on the backend
+      const payload = {
+        displayName: values.displayName?.trim() || undefined,
+        bio: values.bio?.trim() || undefined,
+        phone: values.phone?.trim() || undefined,
+      };
+      await profileApi.updateProfile(payload);
       toast.success('Profile updated successfully.');
       onSuccess();
     } catch (err: any) {

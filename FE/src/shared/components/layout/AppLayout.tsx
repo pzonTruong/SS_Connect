@@ -26,7 +26,7 @@ export const AppLayout = () => {
         tokenStore.clear();
         navigate('/login');
       });
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   const handleLogout = () => {
     tokenStore.clear();
