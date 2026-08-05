@@ -4,6 +4,7 @@ export interface UserDocument extends mongoose.Document {
   email: string;
   password: string;
   isEmailVerified: boolean;
+  role: 'user' | 'admin';
   otpCode?: string;
   otpExpiresAt?: Date;
   resetToken?: string;
@@ -19,6 +20,7 @@ const userSchema = new Schema<UserDocument>(
     email: { type: String, required: true, unique: true, trim: true, lowercase: true },
     password: { type: String, required: true },
     isEmailVerified: { type: Boolean, default: false },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' },
     otpCode: { type: String },
     otpExpiresAt: { type: Date },
     resetToken: { type: String },

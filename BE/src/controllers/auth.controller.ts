@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { UserModel } from '../models/user.model';
 import { comparePassword, hashPassword } from '../utils/hash';
 import { signToken } from '../utils/jwt';
-import { createUserWithOtp, issueOtpForUser, issueResetToken } from '../services/user.service';
+import { createUserWithOtp, issueResetToken } from '../services/user.service';
 
 export const register = async (req: Request, res: Response) => {
   const { email, password } = req.body as { email: string; password: string };
@@ -37,8 +37,9 @@ export const login = async (req: Request, res: Response) => {
     return res.status(403).json({ message: 'Please verify your email first using register OTP' });
   }
 
-  await issueOtpForUser(String(user._id));
-  return res.status(202).json({ message: 'OTP has been sent to your email', requiresOtp: true, email: user.email });
+  // Issue JWT directly — no OTP step required
+  const token = signToken({ sub: String(user._id), email: user.email });
+  return res.json({ token });
 };
 
 export const verifyLoginOtp = async (req: Request, res: Response) => {

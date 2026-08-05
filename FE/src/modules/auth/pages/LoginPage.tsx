@@ -1,17 +1,16 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { KeyRound, Loader2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
+import { useState } from 'react';
 import { authApi } from '../api/auth.api';
 import { tokenStore } from '../store/token.store';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
-import { OtpInput } from '@/shared/components/ui/otp-input';
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email'),
@@ -21,88 +20,30 @@ const loginSchema = z.object({
 type FormValues = z.infer<typeof loginSchema>;
 
 export const LoginPage = () => {
-  const [step, setStep] = useState<'login' | 'verify'>('login');
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(loginSchema),
   });
   const navigate = useNavigate();
 
-  const onLoginSubmit = handleSubmit(async (values) => {
+  const onSubmit = handleSubmit(async (values) => {
     setLoading(true);
     try {
       const response = await authApi.login({ email: values.email, password: values.password });
       const token = response.data?.token as string | undefined;
-      if (token) {
-        tokenStore.set(token);
-        toast.success('Logged in successfully.');
-        navigate('/');
+      if (!token) {
+        toast.error('Unexpected response from server.');
         return;
       }
-      setEmail(values.email);
-      setStep('verify');
-      toast.success('OTP has been sent to your email.');
+      tokenStore.set(token);
+      toast.success('Logged in successfully.');
+      navigate('/');
     } catch (error: any) {
-      const requiresOtp = Boolean(error?.response?.data?.requiresOtp);
-      if (requiresOtp) {
-        setEmail(error.response.data.email ?? values.email);
-        setStep('verify');
-        toast.info('OTP required. Check your email.');
-      } else {
-        toast.error(error?.response?.data?.message ?? 'Something went wrong');
-      }
+      toast.error(error?.response?.data?.message ?? 'Something went wrong');
     } finally {
       setLoading(false);
     }
   });
-
-  const onVerifySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otp.length !== 6) return;
-    setLoading(true);
-    try {
-      const response = await authApi.verifyLoginOtp(email, otp);
-      tokenStore.set(response.data.token);
-      toast.success('Logged in successfully.');
-      navigate('/');
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message ?? 'Invalid OTP');
-      setOtp('');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (step === 'verify') {
-    return (
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle>Verify OTP</CardTitle>
-          <CardDescription>
-            Enter the 6-digit code sent to <span className="font-medium text-foreground">{email}</span>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-5" onSubmit={onVerifySubmit}>
-            <OtpInput value={otp} onChange={setOtp} />
-            <Button className="w-full" type="submit" disabled={otp.length !== 6 || loading}>
-              {loading && <Loader2 className="size-4 animate-spin" />}
-              Verify and Login
-            </Button>
-            <button
-              type="button"
-              onClick={() => { setStep('login'); setOtp(''); }}
-              className="block w-full text-center text-sm text-muted-foreground transition hover:text-foreground"
-            >
-              Back to login
-            </button>
-          </form>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card>
@@ -111,7 +52,7 @@ export const LoginPage = () => {
         <CardDescription>Enter your account details to continue.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="space-y-4" onSubmit={onLoginSubmit}>
+        <form className="space-y-4" onSubmit={onSubmit}>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
@@ -132,7 +73,7 @@ export const LoginPage = () => {
 
           <Button className="w-full" type="submit" disabled={loading}>
             {loading && <Loader2 className="size-4 animate-spin" />}
-            Continue to OTP
+            Login
           </Button>
         </form>
       </CardContent>

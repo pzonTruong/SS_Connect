@@ -3,7 +3,7 @@ import { UserModel } from '../models/user.model';
 import { deleteImage, uploadImage } from '../services/cloudinary.service';
 import { UpdateProfileInput } from '../validators/profile.validator';
 
-// Fields excluded from all profile responses
+// Fields excluded from all profile responses (role is intentionally NOT excluded — it is public)
 const EXCLUDED_FIELDS = '-password -otpCode -otpExpiresAt -resetToken -resetTokenExpiresAt';
 
 export const updateProfile = async (req: Request, res: Response) => {

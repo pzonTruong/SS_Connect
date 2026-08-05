@@ -6,6 +6,7 @@ export interface AuthPayload {
 export interface CurrentUser {
   _id: string;
   email: string;
+  role: 'user' | 'admin';
   isEmailVerified: boolean;
   displayName?: string;
   bio?: string;
