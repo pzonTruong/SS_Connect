@@ -8,6 +8,7 @@ import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { toast } from 'sonner';
+import { formatTimeRange } from '@/shared/lib/utils';
 
 interface Student {
   _id: string;
@@ -227,7 +228,7 @@ export const ExpertDashboardPage = () => {
                         </div>
                         <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
                           <Clock className="size-3.5 text-primary" />
-                          <span>Lúc {booking.time}</span>
+                          <span>Lúc {formatTimeRange(booking.time)} (Thời lượng: 2 tiếng)</span>
                         </div>
                       </div>
 
@@ -406,7 +407,7 @@ export const ExpertDashboardPage = () => {
                 >
                   {['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '19:00', '20:00'].map((time) => (
                     <option key={time} value={time}>
-                      {time}
+                      {formatTimeRange(time)} (2 tiếng)
                     </option>
                   ))}
                 </select>
@@ -434,7 +435,7 @@ export const ExpertDashboardPage = () => {
                       <div key={index} className="flex items-center justify-between border rounded-lg p-2 text-xs bg-neutral-50/50 dark:bg-neutral-900/10">
                         <div className="space-y-0.5">
                           <p className="font-bold text-slate-800 dark:text-slate-200">
-                            {slot.date} @ {slot.time}
+                            {slot.date} @ {formatTimeRange(slot.time)}
                           </p>
                           <p className="text-[10px]">
                             Trạng thái:{' '}

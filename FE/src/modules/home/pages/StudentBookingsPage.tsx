@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
 import { toast } from 'sonner';
+import { formatTimeRange } from '@/shared/lib/utils';
 
 interface Expert {
   _id: string;
@@ -150,7 +151,7 @@ export const StudentBookingsPage = () => {
                       </div>
                       <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
                         <Clock className="size-3.5 text-primary" />
-                        <span>Lúc {booking.time}</span>
+                        <span>Lúc {formatTimeRange(booking.time)}</span>
                       </div>
                     </div>
 

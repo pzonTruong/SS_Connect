@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Calendar, Clock, User, Mail, Phone, BookOpen, GraduationCap, Target, HelpCircle, Link as LinkIcon, Compass, FileText, Loader2 } from 'lucide-react';
+import { formatTimeRange } from '@/shared/lib/utils';
 import { http } from '@/shared/api/http';
 import { authApi } from '@/modules/auth/api/auth.api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
@@ -146,7 +147,7 @@ export const BookingPage = () => {
             </div>
             <div className="flex items-center gap-1.5">
               <Clock className="size-4 text-primary" />
-              <span>Giờ: {selectedTime}</span>
+              <span>Giờ: {formatTimeRange(selectedTime)} (Thời lượng: 2 tiếng)</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Compass className="size-4 text-primary" />

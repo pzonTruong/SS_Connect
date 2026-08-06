@@ -5,6 +5,7 @@ import { http } from '@/shared/api/http';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { toast } from 'sonner';
+import { formatTimeRange, formatSlotDayOfWeek, formatSlotDayAndMonth } from '@/shared/lib/utils';
 
 interface Timeslot {
   date: string;
@@ -32,6 +33,7 @@ export const ExpertProfilePage = () => {
   const [expert, setExpert] = useState<Expert | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedSlot, setSelectedSlot] = useState<Timeslot | null>(null);
+  const [activeDate, setActiveDate] = useState<string>('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,6 +50,25 @@ export const ExpertProfilePage = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
+  // Group slots by date
+  const slotsGroupedByDate: { [key: string]: Timeslot[] } = {};
+  if (expert && expert.availableSlots) {
+    expert.availableSlots.forEach((slot) => {
+      if (!slotsGroupedByDate[slot.date]) {
+        slotsGroupedByDate[slot.date] = [];
+      }
+      slotsGroupedByDate[slot.date].push(slot);
+    });
+  }
+
+  // Set initial activeDate
+  useEffect(() => {
+    const dates = Object.keys(slotsGroupedByDate).sort();
+    if (dates.length > 0 && !activeDate) {
+      setActiveDate(dates[0]);
+    }
+  }, [expert, slotsGroupedByDate, activeDate]);
+
   if (loading) {
     return <div className="text-center py-20 animate-pulse text-muted-foreground">Đang tải hồ sơ chuyên gia...</div>;
   }
@@ -62,32 +83,6 @@ export const ExpertProfilePage = () => {
       </div>
     );
   }
-
-  // Group slots by date
-  const slotsGroupedByDate: { [key: string]: Timeslot[] } = {};
-  if (expert.availableSlots) {
-    expert.availableSlots.forEach((slot) => {
-      if (!slotsGroupedByDate[slot.date]) {
-        slotsGroupedByDate[slot.date] = [];
-      }
-      slotsGroupedByDate[slot.date].push(slot);
-    });
-  }
-
-  // Format date string to display nicely, e.g. "Thứ 5, 06/08"
-  const formatSlotDate = (dateStr: string) => {
-    try {
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return dateStr;
-      const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-      const dayName = days[d.getDay()];
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      return `${dayName}, ${day}/${month}`;
-    } catch {
-      return dateStr;
-    }
-  };
 
   const handleProceedBooking = () => {
     if (!selectedSlot) {
@@ -206,41 +201,72 @@ export const ExpertProfilePage = () => {
             {Object.keys(slotsGroupedByDate).length === 0 ? (
               <p className="text-xs text-center py-8 text-muted-foreground">Hiện chưa có lịch rảnh nào khả dụng.</p>
             ) : (
-              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
-                {Object.keys(slotsGroupedByDate).sort().map((dateStr) => (
-                  <div key={dateStr} className="space-y-1.5">
-                    <p className="text-xs font-bold text-indigo-950 dark:text-indigo-200">
-                      {formatSlotDate(dateStr)}
+              <div className="space-y-4">
+                {/* Horizontal Date Selection Tabs */}
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-dashed">
+                  {Object.keys(slotsGroupedByDate).sort().map((dateStr) => {
+                    const isActive = activeDate === dateStr;
+                    return (
+                      <button
+                        key={dateStr}
+                        type="button"
+                        onClick={() => {
+                          setActiveDate(dateStr);
+                          setSelectedSlot(null);
+                        }}
+                        className={`flex flex-col items-center shrink-0 min-w-[70px] py-2 px-2.5 rounded-xl border text-[11px] font-semibold transition-all duration-200 ${
+                          isActive
+                            ? 'bg-primary text-primary-foreground border-primary shadow-sm scale-102 font-bold'
+                            : 'bg-card text-foreground hover:bg-primary/5 hover:border-primary/20 border-border'
+                        }`}
+                      >
+                        <span className="opacity-80 text-[10px]">{formatSlotDayOfWeek(dateStr)}</span>
+                        <span className="text-xs font-bold mt-0.5">{formatSlotDayAndMonth(dateStr)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Timeslots Grid for the Active Date */}
+                {activeDate && slotsGroupedByDate[activeDate] && (
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Chọn giờ tư vấn (Thời lượng: 2 tiếng):
                     </p>
                     
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {slotsGroupedByDate[dateStr].map((slot) => (
-                        <button
-                          key={slot.time}
-                          disabled={slot.booked}
-                          onClick={() => setSelectedSlot(slot)}
-                          className={`text-center text-xs py-1.5 rounded-lg border font-semibold transition-all ${
-                            slot.booked
-                              ? 'bg-neutral-100 text-neutral-400 border-neutral-200 dark:bg-neutral-800 dark:text-neutral-600 dark:border-neutral-800 cursor-not-allowed line-through'
-                              : selectedSlot?.date === slot.date && selectedSlot?.time === slot.time
-                              ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                              : 'bg-card text-foreground hover:bg-primary/10 hover:border-primary/40'
-                          }`}
-                        >
-                          {slot.time}
-                        </button>
-                      ))}
+                    <div className="grid grid-cols-2 gap-2">
+                      {slotsGroupedByDate[activeDate].map((slot) => {
+                        const isSelected = selectedSlot?.date === slot.date && selectedSlot?.time === slot.time;
+                        return (
+                          <button
+                            key={slot.time}
+                            disabled={slot.booked}
+                            onClick={() => setSelectedSlot(slot)}
+                            className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition-all relative ${
+                              slot.booked
+                                ? 'bg-neutral-100 text-neutral-400 border-neutral-200 dark:bg-neutral-800 dark:text-neutral-600 dark:border-neutral-800 cursor-not-allowed line-through opacity-60'
+                                : isSelected
+                                ? 'bg-primary text-primary-foreground border-primary shadow-md ring-2 ring-primary/20 font-bold'
+                                : 'bg-card text-foreground hover:bg-primary/5 hover:border-primary/30 border-border hover:shadow-sm'
+                            }`}
+                          >
+                            <Clock className={`size-3.5 mb-1 shrink-0 ${isSelected ? 'text-primary-foreground' : 'text-primary'}`} />
+                            <span>{formatTimeRange(slot.time)}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
-                ))}
+                )}
               </div>
             )}
 
             {selectedSlot && (
-              <div className="bg-neutral-50 dark:bg-neutral-900 border rounded-lg p-3 text-xs space-y-1 animate-fadeIn">
+              <div className="bg-neutral-50 dark:bg-neutral-900 border rounded-lg p-3 text-xs space-y-1.5 animate-fadeIn">
                 <p className="text-slate-400">Khung giờ đã chọn:</p>
-                <p className="font-bold text-primary">
-                  {selectedSlot.time} ngày {selectedSlot.date}
+                <p className="font-bold text-primary flex items-center gap-1.5">
+                  <Clock className="size-3.5 text-primary shrink-0" />
+                  <span>{formatTimeRange(selectedSlot.time)} ngày {formatSlotDayAndMonth(selectedSlot.date)} ({formatSlotDayOfWeek(selectedSlot.date)})</span>
                 </p>
               </div>
             )}

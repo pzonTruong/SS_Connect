@@ -1,6 +1,7 @@
 import { useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle, Calendar, Clock, Compass, Video, ArrowRight, Home } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
+import { formatTimeRange } from '@/shared/lib/utils';
 
 export const BookingSuccessPage = () => {
   const [searchParams] = useSearchParams();
@@ -49,7 +50,7 @@ export const BookingSuccessPage = () => {
 
             <div className="flex items-center gap-3">
               <Clock className="size-4.5 text-primary shrink-0" />
-              <span>Khung giờ: {time}</span>
+              <span>Khung giờ: {formatTimeRange(time)} (Thời lượng: 2 tiếng)</span>
             </div>
 
             <div className="flex items-center gap-3">

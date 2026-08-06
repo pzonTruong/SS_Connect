@@ -8,6 +8,7 @@ import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { toast } from 'sonner';
+import { formatTimeRange } from '@/shared/lib/utils';
 
 interface UserRecord {
   _id: string;
@@ -324,7 +325,7 @@ export const AdminDashboardPage = () => {
                       </td>
                       <td className="p-3">
                         <p className="font-bold">{booking.date}</p>
-                        <p className="font-semibold text-slate-400">{booking.time}</p>
+                        <p className="font-semibold text-slate-450">{formatTimeRange(booking.time)}</p>
                       </td>
                       <td className="p-3 capitalize font-semibold">{booking.mode}</td>
                       <td className="p-3">{getStatusBadge(booking.status)}</td>
@@ -397,7 +398,7 @@ export const AdminDashboardPage = () => {
                       className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       {['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'].map((t) => (
-                        <option key={t} value={t}>{t}</option>
+                        <option key={t} value={t}>{formatTimeRange(t)}</option>
                       ))}
                     </select>
                   </div>
