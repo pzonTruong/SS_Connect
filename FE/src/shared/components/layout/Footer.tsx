@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import logoImg from '@/assets/ssConnect_favicon.png';
 
 export const Footer = () => {
   return (
@@ -7,9 +8,12 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
           {/* Left Column: Branding and Tagline */}
           <div className="md:col-span-6 space-y-4">
-            <h3 className="text-xl font-bold text-brand-navy dark:text-white tracking-tight">
-              Student Success
-            </h3>
+            <div className="flex items-center gap-3">
+              <img src={logoImg} alt="Student Success" className="h-14 w-14 object-contain rounded-xl" />
+              <h3 className="text-xl font-bold text-brand-navy dark:text-white tracking-tight">
+                Student Success
+              </h3>
+            </div>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-md">
               Đồng hành cùng bạn trên con đường xây dựng sự nghiệp vững chắc.
             </p>
