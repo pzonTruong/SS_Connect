@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Calendar, Clock, Video, CheckCircle, XCircle } from 'lucide-react';
+import { Calendar, Clock, Video, CheckCircle, XCircle, Info, RefreshCw } from 'lucide-react';
 import { http } from '@/shared/api/http';
 import { Card, CardContent, CardHeader } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -35,6 +35,16 @@ export const StudentBookingsPage = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const getDaysFromToday = (dateStr: string) => {
+    if (!dateStr) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const targetDate = new Date(dateStr);
+    targetDate.setHours(0, 0, 0, 0);
+    const diffTime = targetDate.getTime() - today.getTime();
+    return Math.round(diffTime / (1000 * 60 * 60 * 24));
+  };
+
   const fetchBookings = () => {
     setLoading(true);
     http.get('/bookings/my-bookings')
@@ -53,7 +63,9 @@ export const StudentBookingsPage = () => {
   }, []);
 
   const handleCancelBooking = async (bookingId: string) => {
-    const confirmCancel = window.confirm('Bạn có chắc chắn muốn hủy lịch hẹn tư vấn này?');
+    const confirmCancel = window.confirm(
+      'Bạn có chắc chắn muốn hủy lịch hẹn tư vấn này?\n\nLưu ý: Học viên chỉ được đặt lại tối đa 1 lần sau khi hủy lịch.'
+    );
     if (!confirmCancel) return;
 
     try {
@@ -93,6 +105,20 @@ export const StudentBookingsPage = () => {
         <p className="text-sm text-muted-foreground">Theo dõi danh sách các buổi tư vấn đã đặt và xem ghi chú từ chuyên gia.</p>
       </div>
 
+      {/* Guidelines Alert Banner */}
+      <div className="bg-slate-50 dark:bg-slate-900 border rounded-2xl p-4 flex gap-3 text-xs text-muted-foreground leading-relaxed shadow-sm">
+        <Info className="size-5 text-primary shrink-0 mt-0.5" />
+        <div className="space-y-1">
+          <p className="font-bold text-foreground">Quy định và Điều kiện thay đổi lịch hẹn:</p>
+          <ul className="list-disc pl-4 space-y-1">
+            <li><b>Đặt lịch mới</b>: Phải đặt trước ngày hẹn tối thiểu <b>3 ngày</b>.</li>
+            <li><b>Đổi lịch hẹn</b>: Được phép đổi sang khung giờ khác tối thiểu <b>2 ngày</b> trước giờ hẹn cũ.</li>
+            <li><b>Hủy lịch hẹn</b>: Được phép hủy tối thiểu <b>1 ngày</b> trước giờ hẹn.</li>
+            <li><b>Chính sách đặt lại</b>: Nếu học viên tự hủy lịch, chỉ được đặt lại <b>tối đa 1 lần nữa</b> (sau đó tài khoản sẽ tạm khóa đặt lịch và cần liên hệ hỗ trợ).</li>
+          </ul>
+        </div>
+      </div>
+
       {loading ? (
         <div className="space-y-4">
           {[1, 2].map((i) => (
@@ -110,7 +136,11 @@ export const StudentBookingsPage = () => {
         <div className="space-y-6">
           {bookings.map((booking) => {
             const exp = booking.expertId;
-            const canCancel = ['pending', 'confirmed'].includes(booking.status);
+            const daysDiff = getDaysFromToday(booking.date);
+            
+            const isBookingActive = ['pending', 'confirmed'].includes(booking.status);
+            const canCancel = isBookingActive && daysDiff >= 1;
+            const canReschedule = isBookingActive && daysDiff >= 2;
 
             return (
               <Card key={booking._id} className="border hover:shadow-md transition-all duration-300 overflow-hidden bg-card">
@@ -127,7 +157,7 @@ export const StudentBookingsPage = () => {
                     )}
                     
                     <div className="text-left">
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                      <p className="text-sm font-bold text-slate-900 dark:text-slate-200">
                         Chuyên gia: {exp?.displayName || exp?.email?.split('@')[0]}
                       </p>
                       <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
@@ -145,11 +175,11 @@ export const StudentBookingsPage = () => {
                   <div className="grid gap-4 sm:grid-cols-3 text-xs leading-relaxed border-b pb-4">
                     <div className="space-y-1">
                       <p className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Lịch hẹn:</p>
-                      <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
+                      <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-200">
                         <Calendar className="size-3.5 text-primary" />
                         <span>Ngày {booking.date}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
+                      <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-200">
                         <Clock className="size-3.5 text-primary" />
                         <span>Lúc {formatTimeRange(booking.time)}</span>
                       </div>
@@ -157,8 +187,8 @@ export const StudentBookingsPage = () => {
 
                     <div className="space-y-1">
                       <p className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Chủ đề & Hình thức:</p>
-                      <p className="font-semibold text-slate-800 dark:text-slate-200">{booking.bookingType}</p>
-                      <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
+                      <p className="font-semibold text-slate-900 dark:text-slate-200">{booking.bookingType}</p>
+                      <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-200">
                         <Video className="size-3.5 text-primary" />
                         <span className="capitalize">{booking.mode === 'online' ? 'Online' : 'Offline'}</span>
                       </div>
@@ -204,16 +234,49 @@ export const StudentBookingsPage = () => {
                     </div>
                   )}
 
-                  {canCancel && (
-                    <div className="flex justify-end pt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleCancelBooking(booking._id)}
-                        className="text-xs text-destructive border-destructive hover:bg-destructive/10 font-semibold"
-                      >
-                        <XCircle className="size-3.5 mr-1" /> Hủy lịch hẹn
-                      </Button>
+                  {isBookingActive && (
+                    <div className="flex justify-end gap-3 pt-3 border-t">
+                      {canReschedule ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.location.href = `/experts/${exp?._id}?rescheduleBookingId=${booking._id}`}
+                          className="text-xs text-primary border-primary/30 hover:bg-primary/5 font-semibold"
+                        >
+                          <RefreshCw className="size-3.5 mr-1" /> Đổi lịch hẹn
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled
+                          className="text-xs opacity-50 cursor-not-allowed font-semibold"
+                          title="Chỉ được đổi lịch trước tối thiểu 2 ngày"
+                        >
+                          <RefreshCw className="size-3.5 mr-1" /> Đổi lịch (Quá hạn)
+                        </Button>
+                      )}
+
+                      {canCancel ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleCancelBooking(booking._id)}
+                          className="text-xs text-destructive border-destructive/30 hover:bg-destructive/5 font-semibold"
+                        >
+                          <XCircle className="size-3.5 mr-1" /> Hủy lịch hẹn
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled
+                          className="text-xs opacity-50 cursor-not-allowed font-semibold"
+                          title="Chỉ được hủy lịch trước tối thiểu 1 ngày"
+                        >
+                          <XCircle className="size-3.5 mr-1" /> Hủy lịch (Quá hạn)
+                        </Button>
+                      )}
                     </div>
                   )}
                 </CardContent>

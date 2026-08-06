@@ -20,6 +20,10 @@ export interface UserDocument extends mongoose.Document {
   avatarUrl?: string;
   phone?: string;
   
+  // Student fields
+  cancellationWarnings?: number;
+  isBlockedFromBooking?: boolean;
+  
   // Expert fields
   title?: string;
   specialties?: string[];
@@ -28,6 +32,8 @@ export interface UserDocument extends mongoose.Document {
   consultingStyle?: string;
   availableSlots?: Timeslot[];
   consultingType?: ('online' | 'offline')[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const timeslotSchema = new Schema<Timeslot>({
@@ -50,6 +56,10 @@ const userSchema = new Schema<UserDocument>(
     bio: { type: String, maxlength: 500 }, // Expanded bio max length
     avatarUrl: { type: String },
     phone: { type: String, trim: true },
+
+    // Student schemas
+    cancellationWarnings: { type: Number, default: 0 },
+    isBlockedFromBooking: { type: Boolean, default: false },
     
     // Expert schemas
     title: { type: String, trim: true },

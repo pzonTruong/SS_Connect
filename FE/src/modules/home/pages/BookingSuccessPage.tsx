@@ -10,6 +10,7 @@ export const BookingSuccessPage = () => {
   const time = searchParams.get('time') || '';
   const expertName = decodeURIComponent(searchParams.get('expertName') || '');
   const mode = searchParams.get('mode') || 'online';
+  const expertId = searchParams.get('expertId') || '';
 
   // Generate a mock meet link on the fly for display
   const p1 = Math.random().toString(36).substring(2, 5);
@@ -26,9 +27,9 @@ export const BookingSuccessPage = () => {
         </div>
         
         <div className="space-y-2">
-          <h1 className="text-3xl font-extrabold tracking-tight">Đặt Lịch Thành Công!</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">Gửi Yêu Cầu Thành Công!</h1>
           <p className="text-sm text-muted-foreground">
-            Thông tin xác nhận lịch hẹn đã được hệ thống gửi qua email cho bạn và chuyên gia.
+            Yêu cầu đặt lịch hẹn của bạn đang chờ phê duyệt. Hệ thống sẽ tự động gửi email xác nhận kèm liên kết tham gia cho bạn ngay sau khi chuyên gia xác nhận đồng ý.
           </p>
         </div>
       </section>
@@ -40,7 +41,16 @@ export const BookingSuccessPage = () => {
           <div className="space-y-2.5 text-sm font-semibold">
             <div className="flex items-center gap-3">
               <Compass className="size-4.5 text-primary shrink-0" />
-              <span>Chuyên gia: <span className="text-primary">{expertName}</span></span>
+              <span>
+                Chuyên gia:{' '}
+                {expertId ? (
+                  <Link to={`/experts/${expertId}`} className="text-primary hover:underline hover:text-primary-hover font-bold">
+                    {expertName}
+                  </Link>
+                ) : (
+                  <span className="text-primary">{expertName}</span>
+                )}
+              </span>
             </div>
             
             <div className="flex items-center gap-3">
@@ -77,7 +87,7 @@ export const BookingSuccessPage = () => {
         <div className="pt-4 space-y-3">
           <h4 className="text-xs font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider">Một số lưu ý quan trọng:</h4>
           <ul className="list-disc pl-5 text-xs text-muted-foreground space-y-1.5 leading-relaxed">
-            <li>Bạn sẽ nhận được một email xác nhận đầy đủ thông tin kèm liên kết tham gia. Hãy kiểm tra cả hộp thư Spam nếu không thấy trong Inbox.</li>
+            <li>Email xác nhận chi tiết và đường dẫn phòng họp sẽ được gửi tới hòm thư của bạn sau khi chuyên gia xác nhận lịch hẹn. Hãy kiểm tra kỹ hộp thư (bao gồm cả mục Spam).</li>
             <li>Chuẩn bị trước CV, portfolio, hoặc danh sách câu hỏi cần chuyên gia phản biện.</li>
             <li>Hãy tham gia đúng giờ quy định. Chuyên gia có thể rời phòng họp sau 15 phút nếu bạn vắng mặt.</li>
           </ul>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Briefcase, Award, Compass, Heart, Calendar, CheckCircle2, Clock } from 'lucide-react';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { Briefcase, Award, Compass, Heart, Calendar, CheckCircle2, Clock, RefreshCw, Loader2 } from 'lucide-react';
 import { http } from '@/shared/api/http';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -30,10 +30,14 @@ interface Expert {
 
 export const ExpertProfilePage = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const rescheduleBookingId = searchParams.get('rescheduleBookingId') || '';
+
   const [expert, setExpert] = useState<Expert | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedSlot, setSelectedSlot] = useState<Timeslot | null>(null);
   const [activeDate, setActiveDate] = useState<string>('');
+  const [rescheduling, setRescheduling] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -84,12 +88,48 @@ export const ExpertProfilePage = () => {
     );
   }
 
+  const getDaysFromToday = (dateStr: string) => {
+    if (!dateStr) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const targetDate = new Date(dateStr);
+    targetDate.setHours(0, 0, 0, 0);
+    const diffTime = targetDate.getTime() - today.getTime();
+    return Math.round(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const handleReschedule = async (slot: Timeslot) => {
+    setRescheduling(true);
+    try {
+      await http.put(`/bookings/${rescheduleBookingId}/reschedule`, {
+        date: slot.date,
+        time: slot.time
+      });
+      toast.success('Yêu cầu đổi lịch thành công! Vui lòng chờ chuyên gia xác nhận.');
+      navigate('/my-bookings');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? 'Đã xảy ra lỗi khi đổi lịch hẹn.');
+    } finally {
+      setRescheduling(false);
+    }
+  };
+
   const handleProceedBooking = () => {
     if (!selectedSlot) {
       toast.warning('Vui lòng chọn một khung giờ còn trống trước khi tiếp tục');
       return;
     }
-    navigate(`/booking/${expert._id}?date=${selectedSlot.date}&time=${selectedSlot.time}`);
+
+    if (getDaysFromToday(selectedSlot.date) < 3) {
+      toast.error('Ngày tư vấn được chọn phải đặt trước tối thiểu 3 ngày tính từ hôm nay.');
+      return;
+    }
+
+    if (rescheduleBookingId) {
+      handleReschedule(selectedSlot);
+    } else {
+      navigate(`/booking/${expert._id}?date=${selectedSlot.date}&time=${selectedSlot.time}`);
+    }
   };
 
   return (
@@ -198,6 +238,17 @@ export const ExpertProfilePage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 space-y-4">
+            {rescheduleBookingId && (
+              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-xl p-3 text-xs text-amber-800 dark:text-amber-300 space-y-1 shadow-sm">
+                <p className="font-bold flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
+                  <RefreshCw className="size-3.5 animate-spin" /> Đang thực hiện đổi lịch hẹn
+                </p>
+                <p className="opacity-90 leading-relaxed">
+                  Chọn một khung giờ mới khả dụng của chuyên gia để thực hiện đổi lịch. Lịch hẹn cũ của bạn sẽ được giải phóng tự động sau khi đổi thành công.
+                </p>
+              </div>
+            )}
+
             {Object.keys(slotsGroupedByDate).length === 0 ? (
               <p className="text-xs text-center py-8 text-muted-foreground">Hiện chưa có lịch rảnh nào khả dụng.</p>
             ) : (
@@ -274,9 +325,10 @@ export const ExpertProfilePage = () => {
             <Button
               className="w-full font-semibold bg-brand-brown hover:bg-[#4E2505] text-white dark:bg-slate-200 dark:text-slate-950 dark:hover:bg-slate-300 transition-colors duration-200"
               onClick={handleProceedBooking}
-              disabled={!selectedSlot}
+              disabled={!selectedSlot || rescheduling}
             >
-              Tiến hành đặt lịch
+              {rescheduling && <Loader2 className="size-4 animate-spin mr-2 shrink-0" />}
+              {rescheduleBookingId ? 'Xác nhận đổi lịch hẹn' : 'Tiến hành đặt lịch'}
             </Button>
           </CardContent>
         </Card>
