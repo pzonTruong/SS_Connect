@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Calendar, Clock, Video, CheckCircle, XCircle, Info, RefreshCw } from 'lucide-react';
+import { Calendar, Clock, Video, CheckCircle, XCircle, Info, RefreshCw, AlertTriangle } from 'lucide-react';
 import { http } from '@/shared/api/http';
 import { Card, CardContent, CardHeader } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -13,6 +13,7 @@ interface Expert {
   email: string;
   avatarUrl?: string;
   title?: string;
+  availableSlots?: { date: string; time: string; booked: boolean }[];
 }
 
 interface Booking {
@@ -34,6 +35,14 @@ interface Booking {
 export const StudentBookingsPage = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Reschedule form state (for responding to expert's reschedule request)
+  const [reschedulingId, setReschedulingId] = useState<string | null>(null);
+  const [newDate, setNewDate] = useState('');
+  const [newTime, setNewTime] = useState('09:00');
+  const [newMode, setNewMode] = useState<'online' | 'offline'>('online');
+  const [expertSlots, setExpertSlots] = useState<{ date: string; time: string; booked: boolean }[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   const getDaysFromToday = (dateStr: string) => {
     if (!dateStr) return 0;
@@ -71,11 +80,51 @@ export const StudentBookingsPage = () => {
     try {
       await http.put(`/bookings/${bookingId}/status`, { status: 'cancelled_student' });
       toast.success('Hủy lịch hẹn thành công');
-      fetchBookings(); // Reload list
+      fetchBookings();
     } catch (err: any) {
       toast.error(err?.response?.data?.message ?? 'Đã xảy ra lỗi khi hủy lịch');
     }
   };
+
+  const handleOpenReschedule = async (booking: Booking) => {
+    setReschedulingId(booking._id);
+    setNewDate('');
+    setNewTime('09:00');
+    setNewMode(booking.mode);
+    setLoadingSlots(true);
+    try {
+      const res = await http.get(`/profile/expert/${booking.expertId._id}`);
+      setExpertSlots(res.data?.availableSlots ?? []);
+    } catch {
+      setExpertSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  const handleSubmitReschedule = async (bookingId: string) => {
+    if (!newDate || !newTime) {
+      toast.error('Vui lòng chọn ngày và giờ mới');
+      return;
+    }
+    try {
+      await http.put(`/bookings/${bookingId}/reschedule`, { date: newDate, time: newTime, mode: newMode });
+      toast.success('Đã gửi yêu cầu đổi lịch thành công! Chuyên gia sẽ xác nhận sớm nhất có thể.');
+      setReschedulingId(null);
+      fetchBookings();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? 'Không thể gửi yêu cầu đổi lịch');
+    }
+  };
+
+  // Get available (not booked) slots for a given date
+  const availableDates = [...new Set(
+    expertSlots.filter(s => !s.booked).map(s => s.date)
+  )].sort();
+  const availableTimesForDate = expertSlots
+    .filter(s => s.date === newDate && !s.booked)
+    .map(s => s.time)
+    .sort();
 
   const getStatusBadge = (status: Booking['status']) => {
     switch (status) {
@@ -92,7 +141,7 @@ export const StudentBookingsPage = () => {
       case 'no_show':
         return <Badge variant="outline" className="border-red-400 text-red-500 bg-red-50 dark:bg-red-950/20 dark:text-red-400 font-semibold uppercase text-[10px]">Vắng mặt</Badge>;
       case 'reschedule_needed':
-        return <Badge variant="outline" className="border-purple-400 text-purple-600 bg-purple-50 dark:bg-purple-950/20 dark:text-purple-400 font-semibold uppercase text-[10px]">Cần đổi lịch</Badge>;
+        return <Badge variant="outline" className="border-purple-400 text-purple-600 bg-purple-50 dark:bg-purple-950/20 dark:text-purple-400 font-semibold uppercase text-[10px] animate-pulse">⚠ Cần đổi lịch</Badge>;
       default:
         return <Badge variant="outline" className="font-semibold uppercase text-[10px]">{status}</Badge>;
     }
@@ -137,13 +186,15 @@ export const StudentBookingsPage = () => {
           {bookings.map((booking) => {
             const exp = booking.expertId;
             const daysDiff = getDaysFromToday(booking.date);
-            
+
+            const isRescheduleNeeded = booking.status === 'reschedule_needed';
             const isBookingActive = ['pending', 'confirmed'].includes(booking.status);
-            const canCancel = isBookingActive && daysDiff >= 1;
+            const canCancel = (isBookingActive || isRescheduleNeeded) && daysDiff >= 1;
             const canReschedule = isBookingActive && daysDiff >= 2;
+            const isReschedulingThis = reschedulingId === booking._id;
 
             return (
-              <Card key={booking._id} className="border hover:shadow-md transition-all duration-300 overflow-hidden bg-card">
+              <Card key={booking._id} className={`border hover:shadow-md transition-all duration-300 overflow-hidden bg-card ${isRescheduleNeeded ? 'ring-2 ring-purple-400/60' : ''}`}>
                 <CardHeader className="bg-neutral-50/50 dark:bg-neutral-900/10 border-b p-4 flex flex-row flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     {exp?.avatarUrl ? (
@@ -155,7 +206,7 @@ export const StudentBookingsPage = () => {
                         {(exp?.displayName || 'C').slice(0, 1)}
                       </div>
                     )}
-                    
+
                     <div className="text-left">
                       <p className="text-sm font-bold text-slate-900 dark:text-slate-200">
                         Chuyên gia: {exp?.displayName || exp?.email?.split('@')[0]}
@@ -172,9 +223,24 @@ export const StudentBookingsPage = () => {
                 </CardHeader>
 
                 <CardContent className="p-5 space-y-4">
+                  {/* Expert reschedule request banner */}
+                  {isRescheduleNeeded && (
+                    <div className="bg-purple-50 dark:bg-purple-950/20 border border-purple-300 dark:border-purple-800 rounded-xl p-4 flex gap-3">
+                      <AlertTriangle className="size-5 text-purple-500 shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-purple-800 dark:text-purple-300">
+                          Chuyên gia đã yêu cầu đổi lịch hẹn này
+                        </p>
+                        <p className="text-xs text-purple-700 dark:text-purple-400">
+                          Vui lòng chọn một khung giờ mới phù hợp từ lịch của chuyên gia, hoặc hủy lịch hẹn nếu không thể sắp xếp.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid gap-4 sm:grid-cols-3 text-xs leading-relaxed border-b pb-4">
                     <div className="space-y-1">
-                      <p className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Lịch hẹn:</p>
+                      <p className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Lịch hẹn hiện tại:</p>
                       <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-200">
                         <Calendar className="size-3.5 text-primary" />
                         <span>Ngày {booking.date}</span>
@@ -197,10 +263,10 @@ export const StudentBookingsPage = () => {
                     <div className="space-y-1">
                       <p className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Tham gia cuộc họp:</p>
                       {booking.mode === 'online' && booking.status !== 'cancelled_student' && booking.status !== 'cancelled_expert' ? (
-                        <a 
-                          href={booking.meetingLink || 'https://meet.google.com/abc-defg-hij'} 
-                          target="_blank" 
-                          rel="noreferrer" 
+                        <a
+                          href={booking.meetingLink || 'https://meet.google.com/abc-defg-hij'}
+                          target="_blank"
+                          rel="noreferrer"
                           className="font-bold text-blue-600 dark:text-blue-400 hover:underline inline-block truncate max-w-[200px]"
                         >
                           {booking.meetingLink || 'https://meet.google.com/abc-defg-hij'}
@@ -234,6 +300,140 @@ export const StudentBookingsPage = () => {
                     </div>
                   )}
 
+                  {/* ─── Reschedule inline form (for reschedule_needed status) ─── */}
+                  {isRescheduleNeeded && (
+                    <div className="border border-purple-200 dark:border-purple-800/50 rounded-xl p-4 space-y-4 bg-purple-50/50 dark:bg-purple-950/10">
+                      {!isReschedulingThis ? (
+                        <div className="flex flex-wrap justify-end gap-3">
+                          <Button
+                            size="sm"
+                            onClick={() => handleOpenReschedule(booking)}
+                            className="text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white"
+                          >
+                            <RefreshCw className="size-3.5 mr-1.5" /> Chọn lịch mới
+                          </Button>
+                          {canCancel && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCancelBooking(booking._id)}
+                              className="text-xs text-destructive border-destructive/30 hover:bg-destructive/5 font-semibold"
+                            >
+                              <XCircle className="size-3.5 mr-1" /> Hủy lịch hẹn
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <p className="text-sm font-bold text-purple-800 dark:text-purple-300">Chọn lịch mới:</p>
+                          {loadingSlots ? (
+                            <p className="text-xs text-muted-foreground animate-pulse">Đang tải lịch trống của chuyên gia...</p>
+                          ) : availableDates.length === 0 ? (
+                            <p className="text-xs text-red-500 font-semibold">Hiện tại chuyên gia không có lịch trống. Vui lòng liên hệ hỗ trợ hoặc hủy lịch.</p>
+                          ) : (
+                            <>
+                              {/* Date picker */}
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ngày tư vấn mới</label>
+                                <div className="flex flex-wrap gap-2">
+                                  {availableDates.map(d => (
+                                    <button
+                                      key={d}
+                                      onClick={() => { setNewDate(d); setNewTime(''); }}
+                                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                                        newDate === d
+                                          ? 'bg-purple-600 text-white border-purple-600'
+                                          : 'border-slate-200 dark:border-slate-700 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30'
+                                      }`}
+                                    >
+                                      {d}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Time picker */}
+                              {newDate && (
+                                <div className="space-y-1.5">
+                                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Khung giờ</label>
+                                  {availableTimesForDate.length === 0 ? (
+                                    <p className="text-xs text-red-400">Không còn giờ trống cho ngày này</p>
+                                  ) : (
+                                    <div className="flex flex-wrap gap-2">
+                                      {availableTimesForDate.map(t => (
+                                        <button
+                                          key={t}
+                                          onClick={() => setNewTime(t)}
+                                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                                            newTime === t
+                                              ? 'bg-purple-600 text-white border-purple-600'
+                                              : 'border-slate-200 dark:border-slate-700 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30'
+                                          }`}
+                                        >
+                                          {formatTimeRange(t)}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Mode picker */}
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Hình thức</label>
+                                <div className="flex gap-2">
+                                  {(['online', 'offline'] as const).map(m => (
+                                    <button
+                                      key={m}
+                                      onClick={() => setNewMode(m)}
+                                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all capitalize ${
+                                        newMode === m
+                                          ? 'bg-purple-600 text-white border-purple-600'
+                                          : 'border-slate-200 dark:border-slate-700 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30'
+                                      }`}
+                                    >
+                                      {m === 'online' ? 'Online' : 'Offline'}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </>
+                          )}
+
+                          <div className="flex flex-wrap justify-end gap-3 pt-2 border-t border-purple-200 dark:border-purple-800/40">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setReschedulingId(null)}
+                              className="text-xs font-semibold"
+                            >
+                              Huỷ bỏ
+                            </Button>
+                            {canCancel && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCancelBooking(booking._id)}
+                                className="text-xs text-destructive border-destructive/30 hover:bg-destructive/5 font-semibold"
+                              >
+                                <XCircle className="size-3.5 mr-1" /> Hủy lịch hẹn
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              disabled={!newDate || !newTime}
+                              onClick={() => handleSubmitReschedule(booking._id)}
+                              className="text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
+                            >
+                              <RefreshCw className="size-3.5 mr-1.5" /> Xác nhận đổi lịch
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ─── Normal active booking actions ─── */}
                   {isBookingActive && (
                     <div className="flex justify-end gap-3 pt-3 border-t">
                       {canReschedule ? (

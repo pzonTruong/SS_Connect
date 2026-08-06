@@ -499,8 +499,8 @@ export const rescheduleBooking = async (req: Request, res: Response) => {
       return res.status(403).json({ message: 'Bạn không có quyền đổi lịch hẹn này' });
     }
 
-    if (!['pending', 'confirmed'].includes(booking.status)) {
-      return res.status(400).json({ message: 'Chỉ có thể đổi lịch hẹn đang chờ hoặc đã xác nhận' });
+    if (!['pending', 'confirmed', 'reschedule_needed'].includes(booking.status)) {
+      return res.status(400).json({ message: 'Chỉ có thể đổi lịch hẹn đang chờ, đã xác nhận hoặc đang yêu cầu đổi lịch' });
     }
 
     // Check if reschedule is requested at least 2 days before the original booking date
