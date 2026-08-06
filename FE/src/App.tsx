@@ -7,6 +7,15 @@ import { RegisterPage } from '@/modules/auth/pages/RegisterPage';
 import { ForgotPasswordPage } from '@/modules/auth/pages/ForgotPasswordPage';
 import { LogoutPage } from '@/modules/auth/pages/LogoutPage';
 import { HomePage } from '@/modules/home/pages/HomePage';
+import { ExpertsListPage } from '@/modules/home/pages/ExpertsListPage';
+import { ExpertProfilePage } from '@/modules/home/pages/ExpertProfilePage';
+import { ResourcesPage } from '@/modules/home/pages/ResourcesPage';
+import { ContactPage } from '@/modules/home/pages/ContactPage';
+import { BookingPage } from '@/modules/home/pages/BookingPage';
+import { BookingSuccessPage } from '@/modules/home/pages/BookingSuccessPage';
+import { StudentBookingsPage } from '@/modules/home/pages/StudentBookingsPage';
+import { ExpertDashboardPage } from '@/modules/home/pages/ExpertDashboardPage';
+import { AdminDashboardPage } from '@/modules/home/pages/AdminDashboardPage';
 import { ProfilePage } from '@/modules/profile/pages/ProfilePage';
 
 function App() {
@@ -20,10 +29,22 @@ function App() {
       </Route>
       <Route path="/logout" element={<LogoutPage />} />
 
-      {/* Protected routes */}
-      <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+      {/* Main layout routes */}
+      <Route element={<AppLayout />}>
+        {/* Public routes */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/experts" element={<ExpertsListPage />} />
+        <Route path="/experts/:id" element={<ExpertProfilePage />} />
+        <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+
+        {/* Protected routes */}
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/booking/:expertId" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
+        <Route path="/booking-success" element={<ProtectedRoute><BookingSuccessPage /></ProtectedRoute>} />
+        <Route path="/my-bookings" element={<ProtectedRoute><StudentBookingsPage /></ProtectedRoute>} />
+        <Route path="/expert-dashboard" element={<ProtectedRoute><ExpertDashboardPage /></ProtectedRoute>} />
+        <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
         <Route path="/me" element={<Navigate to="/profile" replace />} />
       </Route>
 

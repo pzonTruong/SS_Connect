@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --radius-sm: calc(var(--radius-lg) - 4px);
   --radius-md: calc(var(--radius-lg) - 2px);
@@ -29,62 +31,167 @@
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
+
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-brown: var(--brand-brown);
+  --color-brand-blue: var(--brand-blue);
+
+  /* Mapping standard Tailwind slate colors to dynamically controllable CSS variables */
+  --color-slate-50: var(--slate-50);
+  --color-slate-100: var(--slate-100);
+  --color-slate-200: var(--slate-200);
+  --color-slate-300: var(--slate-300);
+  --color-slate-400: var(--slate-400);
+  --color-slate-500: var(--slate-500);
+  --color-slate-600: var(--slate-600);
+  --color-slate-700: var(--slate-700);
+  --color-slate-800: var(--slate-800);
+  --color-slate-850: var(--slate-850);
+  --color-slate-900: var(--slate-900);
+  --color-slate-950: var(--slate-950);
+
+  /* Mapping standard Tailwind neutral colors to dynamically controllable CSS variables */
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-850: var(--neutral-850);
+  --color-neutral-900: var(--neutral-900);
+  --color-neutral-950: var(--neutral-950);
 }
 
-/* Light theme (default) */
+/* Light theme (default) - LinkedIn Light Theme */
 :root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(222 47% 11%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(222 47% 11%);
-  --primary: hsl(262 83% 58%);
-  --primary-foreground: hsl(0 0% 100%);
-  --muted: hsl(210 40% 96%);
-  --muted-foreground: hsl(215 16% 47%);
-  --border: hsl(214 32% 91%);
-  --input: hsl(214 32% 91%);
-  --ring: hsl(262 83% 58%);
+  --background: #F4F2EE; /* LinkedIn Warm Gray background */
+  --foreground: #1D2226; /* LinkedIn Dark Gray text */
+  --card: #FFFFFF;
+  --card-foreground: #1D2226;
+  --primary: #0A66C2; /* LinkedIn Blue */
+  --primary-foreground: #FFFFFF;
+  --muted: #F4F2EE;
+  --muted-foreground: rgba(0,0,0,0.6);
+  --border: #E0E0E0; /* LinkedIn Light Border */
+  --input: #E0E0E0;
+  --ring: #0A66C2;
   --destructive: hsl(0 84% 60%);
-  --destructive-foreground: hsl(0 0% 100%);
-  --accent: hsl(210 40% 96%);
-  --accent-foreground: hsl(222 47% 11%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(222 47% 11%);
-  --secondary: hsl(210 40% 96%);
-  --secondary-foreground: hsl(222 47% 11%);
-  --sidebar: hsl(0 0% 98%);
-  --sidebar-foreground: hsl(222 47% 11%);
-  --sidebar-accent: hsl(210 40% 96%);
-  --sidebar-accent-foreground: hsl(222 47% 11%);
-  --sidebar-border: hsl(214 32% 91%);
+  --destructive-foreground: #FFFFFF;
+  --accent: #F4F2EE;
+  --accent-foreground: #1D2226;
+  --popover: #FFFFFF;
+  --popover-foreground: #1D2226;
+  --secondary: #EBEBEB;
+  --secondary-foreground: rgba(0,0,0,0.7);
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1D2226;
+  --sidebar-accent: #F4F2EE;
+  --sidebar-accent-foreground: #1D2226;
+  --sidebar-border: #E0E0E0;
+
+  /* Brand Colors - LinkedIn Theme Blue */
+  --brand-navy: #1D2226;
+  --brand-navy-hover: #000000;
+  --brand-brown: #0A66C2; /* LinkedIn Blue */
+  --brand-brown-hover: #004182;
+  --brand-blue: #0A66C2;
+  --brand-blue-hover: #004182;
+
+  /* Standard Tailwind slate colors for light mode */
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #cbd5e1;
+  --slate-300: #94a3b8;
+  --slate-400: #64748b;
+  --slate-500: #475569;
+  --slate-600: #334155;
+  --slate-700: #2c3e50;
+  --slate-800: #cbd5e1;
+  --slate-850: #f4f2ee;
+  --slate-900: #1d2226;
+  --slate-950: #f4f2ee;
+
+  /* Standard Tailwind neutral colors for light mode */
+  --neutral-50: #fafafa;
+  --neutral-100: #f5f5f5;
+  --neutral-200: #e5e5e5;
+  --neutral-300: #d4d4d4;
+  --neutral-400: #a3a3a3;
+  --neutral-500: #737373;
+  --neutral-600: #525252;
+  --neutral-700: #404040;
+  --neutral-800: #cbd5e1;
+  --neutral-850: #e0e0e0;
+  --neutral-900: #1d2226;
+  --neutral-950: #0a0a0a;
 }
 
-/* Dark theme */
+/* Dark theme - LinkedIn Dark Theme */
 .dark {
-  --background: hsl(222 47% 11%);
-  --foreground: hsl(210 40% 98%);
-  --card: hsl(224 40% 14%);
-  --card-foreground: hsl(210 40% 98%);
-  --primary: hsl(262 83% 58%);
-  --primary-foreground: hsl(210 40% 98%);
-  --muted: hsl(223 25% 20%);
-  --muted-foreground: hsl(215 20% 75%);
-  --border: hsl(223 21% 26%);
-  --input: hsl(223 21% 26%);
-  --ring: hsl(262 83% 58%);
+  /* Dynamic semantic variables - tuned for premium corporate navy-slate */
+  --background: #1B1F23; /* LinkedIn Dark Background */
+  --foreground: #F3F5F7; /* LinkedIn Light text */
+  --card: #242C33; /* LinkedIn Dark Card surface */
+  --card-foreground: #F3F5F7;
+  --primary: #70B5F9; /* LinkedIn light active blue for dark mode */
+  --primary-foreground: #1B1F23;
+  --muted: #1B1F23;
+  --muted-foreground: #a8b6c7;
+  --border: #38434F; /* LinkedIn dark border */
+  --input: #38434F;
+  --ring: #70B5F9;
   --destructive: hsl(0 84% 60%);
-  --destructive-foreground: hsl(210 40% 98%);
-  --accent: hsl(223 25% 20%);
-  --accent-foreground: hsl(210 40% 98%);
-  --popover: hsl(224 40% 14%);
-  --popover-foreground: hsl(210 40% 98%);
-  --secondary: hsl(223 25% 20%);
-  --secondary-foreground: hsl(210 40% 98%);
-  --sidebar: hsl(224 40% 10%);
-  --sidebar-foreground: hsl(210 40% 98%);
-  --sidebar-accent: hsl(223 25% 16%);
-  --sidebar-accent-foreground: hsl(210 40% 98%);
-  --sidebar-border: hsl(223 21% 20%);
+  --destructive-foreground: #F3F5F7;
+  --accent: #1D2226;
+  --accent-foreground: #F3F5F7;
+  --popover: #242C33;
+  --popover-foreground: #F3F5F7;
+  --secondary: #38434F;
+  --secondary-foreground: #F3F5F7;
+  --sidebar: #242C33;
+  --sidebar-foreground: #F3F5F7;
+  --sidebar-accent: #1D2226;
+  --sidebar-accent-foreground: #F3F5F7;
+  --sidebar-border: #38434F;
+
+  /* Dark theme Brand Colors - tuned for high readability and premium look */
+  --brand-navy: #ffffff;
+  --brand-navy-hover: #f3f5f7;
+  --brand-brown: #70B5F9; /* LinkedIn light active blue */
+  --brand-brown-hover: #a0cffb;
+  --brand-blue: #70B5F9;
+  --brand-blue-hover: #a0cffb;
+
+  /* Tinted Slate colors mapped to LinkedIn dark palette */
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #cbd5e1;
+  --slate-300: #94a3b8;
+  --slate-400: #8694a6;
+  --slate-500: #627182;
+  --slate-600: #4a5768;
+  --slate-700: #38434F;
+  --slate-800: #38434F; /* Dark Border */
+  --slate-850: #2d3743; /* Sub-card panels */
+  --slate-900: #242C33; /* Primary card background */
+  --slate-950: #1b1f23; /* Main application background */
+
+  /* Tinted Neutral colors mapped to LinkedIn dark palette */
+  --neutral-50: #f9fafb;
+  --neutral-100: #f3f4f6;
+  --neutral-200: #e5e7eb;
+  --neutral-300: #cbd5e1;
+  --neutral-400: #94a3b8;
+  --neutral-500: #64748b;
+  --neutral-600: #4b5563;
+  --neutral-700: #38434F;
+  --neutral-800: #242C33; /* Neutral dark card bg */
+  --neutral-850: #1d2226; /* Secondary dark bg */
+  --neutral-900: #1b1f23; /* LinkedIn background */
+  --neutral-950: #14171a;
 }
 
 * {
@@ -97,5 +204,49 @@ body {
   color: var(--color-foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-family: Inter, Arial, sans-serif;
+  font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+  letter-spacing: -0.015em;
+}
+
+/* Typography styles for headings */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.025em !important;
+  font-weight: 700;
+}
+
+/* Global button focus states & text tweaks */
+button, .button {
+  font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+  letter-spacing: -0.015em;
+}
+
+/* Override hardcoded brown and navy backgrounds on hover dynamically */
+.bg-brand-brown:hover {
+  background-color: var(--brand-brown-hover) !important;
+}
+
+.bg-brand-navy:hover {
+  background-color: var(--brand-navy-hover) !important;
+}
+
+.bg-brand-blue:hover {
+  background-color: var(--brand-blue-hover) !important;
+}
+
+/* Input styles for premium focus state */
+input, textarea, select {
+  border-radius: 6px !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--brand-blue) !important;
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.15) !important;
+  outline: none !important;
+}
+
+.dark input:focus, .dark textarea:focus, .dark select:focus {
+  border-color: var(--brand-blue) !important;
+  box-shadow: 0 0 0 2px rgba(112, 181, 249, 0.15) !important;
+  outline: none !important;
 }

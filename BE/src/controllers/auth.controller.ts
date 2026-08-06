@@ -5,8 +5,8 @@ import { signToken } from '../utils/jwt';
 import { createUserWithOtp, issueResetToken } from '../services/user.service';
 
 export const register = async (req: Request, res: Response) => {
-  const { email, password } = req.body as { email: string; password: string };
-  const user = await createUserWithOtp(email, password);
+  const { email, password, role } = req.body as { email: string; password: string; role?: 'user' | 'expert' };
+  const user = await createUserWithOtp(email, password, role);
   if (!user) return res.status(409).json({ message: 'Email already exists' });
   return res.status(201).json({ message: 'OTP has been sent to your email' });
 };

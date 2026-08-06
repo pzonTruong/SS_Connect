@@ -8,14 +8,29 @@ import { sendOtpEmail, sendResetTokenEmail } from './email.service';
 const otpExpiry = () => new Date(Date.now() + env.otpExpiresMinutes * 60 * 1000);
 const resetExpiry = () => new Date(Date.now() + env.resetTokenExpiresMinutes * 60 * 1000);
 
-export const createUserWithOtp = async (email: string, password: string) => {
+export const createUserWithOtp = async (email: string, password: string, role?: 'user' | 'expert') => {
   const existing = await UserModel.findOne({ email });
-  if (existing) return null;
+  if (existing) {
+    if (!existing.isEmailVerified) {
+      // User exists but has not verified email yet. Resend OTP and update password/role.
+      const otp = generateOtp();
+      existing.password = await hashPassword(password);
+      existing.role = role || 'user';
+      existing.otpCode = otp;
+      existing.otpExpiresAt = otpExpiry();
+      await existing.save();
+
+      await sendOtpEmail(email, otp);
+      return existing;
+    }
+    return null; // Verified email already exists
+  }
 
   const otp = generateOtp();
   const user = await UserModel.create({
     email,
     password: await hashPassword(password),
+    role: role || 'user',
     otpCode: otp,
     otpExpiresAt: otpExpiry()
   });

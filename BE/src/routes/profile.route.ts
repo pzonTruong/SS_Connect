@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer, { memoryStorage } from 'multer';
-import { updateProfile, uploadAvatar } from '../controllers/profile.controller';
+import { updateProfile, uploadAvatar, getExperts, getExpertById, updateExpertDetails, updateExpertSlots } from '../controllers/profile.controller';
 import { authGuard } from '../middlewares/auth.middleware';
 import { validateBody } from '../middlewares/validate.middleware';
 import { updateProfileSchema } from '../validators/profile.validator';
@@ -23,3 +23,10 @@ const upload = multer({
 
 profileRouter.patch('/', authGuard, validateBody(updateProfileSchema), updateProfile);
 profileRouter.post('/avatar', authGuard, upload.single('avatar'), uploadAvatar);
+
+// Experts profiles endpoints
+profileRouter.get('/experts', getExperts);
+profileRouter.get('/experts/:id', getExpertById);
+profileRouter.put('/expert-details', authGuard, updateExpertDetails);
+profileRouter.put('/expert-slots', authGuard, updateExpertSlots);
+

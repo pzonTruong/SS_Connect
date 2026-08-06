@@ -5,6 +5,8 @@ import { env } from './config/env';
 import { errorMiddleware } from './middlewares/error.middleware';
 import { authRouter } from './routes/auth.route';
 import { profileRouter } from './routes/profile.route';
+import { bookingRouter } from './routes/booking.route';
+import { adminRouter } from './routes/admin.route';
 
 export const app = express();
 
@@ -25,4 +27,7 @@ app.get("/", (req, res) => {
 app.get('/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/auth', authRouter);
 app.use('/api/profile', profileRouter);
+app.use('/api/bookings', bookingRouter);
+app.use('/api/admin', adminRouter);
 app.use(errorMiddleware);
+
