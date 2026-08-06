@@ -36,6 +36,7 @@ export const ExpertsListPage = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('Tất cả lĩnh vực');
+  const userRole = localStorage.getItem('user_role');
 
   useEffect(() => {
     http.get('/profile/experts')
@@ -185,11 +186,13 @@ export const ExpertsListPage = () => {
                       Xem chi tiết
                     </Button>
                   </Link>
-                  <Link to={`/booking/${exp._id}`} className="flex-1">
-                    <Button size="sm" className="w-full text-xs font-semibold bg-brand-brown hover:bg-[#4E2505] text-white dark:bg-slate-200 dark:text-slate-950 dark:hover:bg-slate-300 transition-colors duration-200">
-                      Đặt lịch
-                    </Button>
-                  </Link>
+                  {userRole !== 'admin' && userRole !== 'expert' && (
+                    <Link to={`/booking/${exp._id}`} className="flex-1">
+                      <Button size="sm" className="w-full text-xs font-semibold bg-brand-brown hover:bg-[#4E2505] text-white dark:bg-slate-200 dark:text-slate-950 dark:hover:bg-slate-300 transition-colors duration-200">
+                        Đặt lịch
+                      </Button>
+                    </Link>
+                  )}
                 </div>
               </CardContent>
             </Card>

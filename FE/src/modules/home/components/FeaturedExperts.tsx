@@ -61,6 +61,7 @@ const FALLBACK_EXPERTS: Expert[] = [
 export const FeaturedExperts = ({ experts, loading }: FeaturedExpertsProps) => {
   // Use backend experts if available, otherwise display fallback mockup data
   const displayExperts = experts.length > 0 ? experts.slice(0, 4) : FALLBACK_EXPERTS;
+  const userRole = localStorage.getItem('user_role');
 
   return (
     <section className="py-12 md:py-16">
@@ -143,13 +144,15 @@ export const FeaturedExperts = ({ experts, loading }: FeaturedExpertsProps) => {
                         Profile
                       </Button>
                     </Link>
-                    <Link to={bookingPath} className="flex-1">
-                      <Button 
-                        className="w-full bg-brand-brown text-white font-bold text-xs py-2 rounded-md transition-all duration-200"
-                      >
-                        Book Now
-                      </Button>
-                    </Link>
+                    {userRole !== 'admin' && userRole !== 'expert' && (
+                      <Link to={bookingPath} className="flex-1">
+                        <Button 
+                          className="w-full bg-brand-brown text-white font-bold text-xs py-2 rounded-md transition-all duration-200"
+                        >
+                          Book Now
+                        </Button>
+                      </Link>
+                    )}
                   </div>
                 </CardContent>
               </Card>

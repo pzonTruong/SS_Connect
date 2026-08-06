@@ -109,10 +109,10 @@
   --slate-500: #475569;
   --slate-600: #334155;
   --slate-700: #2c3e50;
-  --slate-800: #cbd5e1;
-  --slate-850: #f4f2ee;
+  --slate-800: #1e293b;
+  --slate-850: #172033;
   --slate-900: #1d2226;
-  --slate-950: #f4f2ee;
+  --slate-950: #020617;
 
   /* Standard Tailwind neutral colors for light mode */
   --neutral-50: #fafafa;
@@ -123,8 +123,8 @@
   --neutral-500: #737373;
   --neutral-600: #525252;
   --neutral-700: #404040;
-  --neutral-800: #cbd5e1;
-  --neutral-850: #e0e0e0;
+  --neutral-800: #262626;
+  --neutral-850: #171717;
   --neutral-900: #1d2226;
   --neutral-950: #0a0a0a;
 }

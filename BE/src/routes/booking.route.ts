@@ -9,7 +9,7 @@ import {
   adminRescheduleBooking,
   adminGetStats
 } from '../controllers/booking.controller';
-import { authGuard } from '../middlewares/auth.middleware';
+import { authGuard, adminGuard } from '../middlewares/auth.middleware';
 
 export const bookingRouter = Router();
 
@@ -25,6 +25,7 @@ bookingRouter.get('/expert-bookings', authGuard, getExpertBookings);
 bookingRouter.put('/:id/status', authGuard, updateBookingStatus);
 
 // Admin-only routes
-bookingRouter.get('/admin/all', authGuard, adminGetAllBookings);
-bookingRouter.put('/admin/:id/reschedule', authGuard, adminRescheduleBooking);
-bookingRouter.get('/admin/stats', authGuard, adminGetStats);
+bookingRouter.get('/admin/all', authGuard, adminGuard, adminGetAllBookings);
+bookingRouter.put('/admin/:id/reschedule', authGuard, adminGuard, adminRescheduleBooking);
+bookingRouter.get('/admin/stats', authGuard, adminGuard, adminGetStats);
+

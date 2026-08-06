@@ -297,46 +297,70 @@ export const adminGetAllBookings = async (req: Request, res: Response) => {
 export const adminRescheduleBooking = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { date, time, mode } = req.body;
+    const { date, time, mode, expertId } = req.body;
 
     const booking = await BookingModel.findById(id);
     if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
+      return res.status(404).json({ message: 'Không tìm thấy lịch hẹn' });
     }
 
-    const expert = await UserModel.findById(booking.expertId);
-    if (!expert) {
-      return res.status(404).json({ message: 'Expert not found' });
+    const oldExpert = await UserModel.findById(booking.expertId);
+    const targetExpertId = expertId || booking.expertId;
+    const isExpertChanging = String(targetExpertId) !== String(booking.expertId);
+
+    let newExpert;
+    if (isExpertChanging) {
+      newExpert = await UserModel.findById(targetExpertId);
+      if (!newExpert) {
+        return res.status(404).json({ message: 'Không tìm thấy chuyên gia mới được chọn' });
+      }
+    } else {
+      newExpert = oldExpert;
     }
 
-    // Release previous slot
-    const prevSlotIndex = expert.availableSlots?.findIndex(
-      (slot) => slot.date === booking.date && slot.time === booking.time
-    );
-    if (prevSlotIndex !== undefined && prevSlotIndex !== -1) {
-      expert.availableSlots![prevSlotIndex].booked = false;
+    if (!newExpert) {
+      return res.status(404).json({ message: 'Không tìm thấy chuyên gia' });
     }
 
-    // Find and verify the new slot
-    const newSlotIndex = expert.availableSlots?.findIndex(
+    // 1. Release previous slot on old expert
+    if (oldExpert) {
+      const prevSlotIndex = oldExpert.availableSlots?.findIndex(
+        (slot) => slot.date === booking.date && slot.time === booking.time
+      );
+      if (prevSlotIndex !== undefined && prevSlotIndex !== -1) {
+        oldExpert.availableSlots![prevSlotIndex].booked = false;
+        await oldExpert.save();
+      }
+    }
+
+    // 2. Find and verify/create the new slot on new expert
+    const newSlotIndex = newExpert.availableSlots?.findIndex(
       (slot) => slot.date === date && slot.time === time
     );
     if (newSlotIndex === undefined || newSlotIndex === -1) {
-      return res.status(400).json({ message: 'Khung giờ mới này không khả dụng cho chuyên gia' });
+      // Dynamic slot override for admin: allow booking even if slot wasn't predefined
+      if (!newExpert.availableSlots) {
+        newExpert.availableSlots = [];
+      }
+      newExpert.availableSlots.push({
+        date,
+        time,
+        booked: true
+      });
+    } else {
+      const newSlot = newExpert.availableSlots![newSlotIndex];
+      if (newSlot.booked) {
+        return res.status(400).json({ message: 'Khung giờ này đã có học viên khác đặt cho chuyên gia này' });
+      }
+      newExpert.availableSlots![newSlotIndex].booked = true;
     }
 
-    const newSlot = expert.availableSlots![newSlotIndex];
-    if (newSlot.booked) {
-      return res.status(400).json({ message: 'Khung giờ mới đã được đặt' });
-    }
+    await newExpert.save();
 
-    // Lock new slot
-    expert.availableSlots![newSlotIndex].booked = true;
-    await expert.save();
-
-    // Update booking
+    // 3. Update booking
     booking.date = date;
     booking.time = time;
+    booking.expertId = targetExpertId;
     if (mode) booking.mode = mode;
 
     if (mode === 'online' && !booking.meetingLink) {
@@ -366,17 +390,54 @@ export const adminGetStats = async (req: Request, res: Response) => {
     const noShow = await BookingModel.countDocuments({ status: 'no_show' });
     const reschedule = await BookingModel.countDocuments({ status: 'reschedule_needed' });
 
-    // Aggregating bookings count by date for graph
-    const dailyStats = await BookingModel.aggregate([
-      {
-        $group: {
-          _id: '$date',
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { _id: 1 } },
-      { $limit: 30 }
-    ]);
+    // Retrieve all dates to compute daily, weekly, monthly stats in memory
+    const allBookingDates = await BookingModel.find({}).select('date').lean();
+
+    const dailyMap: Record<string, number> = {};
+    const weeklyMap: Record<string, number> = {};
+    const monthlyMap: Record<string, number> = {};
+
+    const getMondayString = (dateStr: string) => {
+      try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(d.setDate(diff));
+        return monday.toISOString().split('T')[0];
+      } catch {
+        return dateStr;
+      }
+    };
+
+    for (const b of allBookingDates) {
+      if (!b.date) continue;
+      // Daily (YYYY-MM-DD)
+      dailyMap[b.date] = (dailyMap[b.date] || 0) + 1;
+
+      // Weekly (Monday of week YYYY-MM-DD)
+      const mondayStr = getMondayString(b.date);
+      weeklyMap[mondayStr] = (weeklyMap[mondayStr] || 0) + 1;
+
+      // Monthly (YYYY-MM)
+      const monthStr = b.date.substring(0, 7);
+      monthlyMap[monthStr] = (monthlyMap[monthStr] || 0) + 1;
+    }
+
+    const dailyStats = Object.entries(dailyMap)
+      .map(([date, count]) => ({ _id: date, count }))
+      .sort((a, b) => a._id.localeCompare(b._id))
+      .slice(-30);
+
+    const weeklyStats = Object.entries(weeklyMap)
+      .map(([weekStart, count]) => ({ _id: `Tuần ${weekStart}`, count }))
+      .sort((a, b) => a._id.localeCompare(b._id))
+      .slice(-20);
+
+    const monthlyStats = Object.entries(monthlyMap)
+      .map(([month, count]) => ({ _id: `Tháng ${month.substring(5)}/${month.substring(0, 4)}`, count }))
+      .sort((a, b) => a._id.localeCompare(b._id))
+      .slice(-12);
 
     // Top experts stats
     const expertStats = await BookingModel.aggregate([
@@ -412,6 +473,8 @@ export const adminGetStats = async (req: Request, res: Response) => {
         reschedule
       },
       dailyStats,
+      weeklyStats,
+      monthlyStats,
       expertStats: populatedExpertStats
     });
   } catch (error: any) {

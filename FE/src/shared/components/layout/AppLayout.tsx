@@ -21,9 +21,11 @@ export const AppLayout = () => {
     authApi.getMe()
       .then((res) => {
         setUser(res.data as CurrentUser);
+        localStorage.setItem('user_role', res.data.role);
       })
       .catch(() => {
         tokenStore.clear();
+        localStorage.removeItem('user_role');
         const isPublicRoute = 
           location.pathname === '/' || 
           location.pathname === '/experts' || 
@@ -37,6 +39,7 @@ export const AppLayout = () => {
 
   const handleLogout = () => {
     tokenStore.clear();
+    localStorage.removeItem('user_role');
     setUser(null);
     navigate('/login');
   };
@@ -60,7 +63,7 @@ export const AppLayout = () => {
                 'text-sm font-semibold transition-all duration-200 pb-1.5 border-b-2',
                 location.pathname === '/'
                   ? 'border-brand-navy text-brand-navy dark:border-white dark:text-white'
-                  : 'border-transparent text-slate-500 hover:text-brand-navy dark:hover:text-slate-200'
+                  : 'border-transparent text-slate-505 hover:text-brand-navy dark:hover:text-slate-200'
               )}
             >
               Home
@@ -71,7 +74,7 @@ export const AppLayout = () => {
                 'text-sm font-semibold transition-all duration-200 pb-1.5 border-b-2',
                 location.pathname === '/experts'
                   ? 'border-brand-navy text-brand-navy dark:border-white dark:text-white'
-                  : 'border-transparent text-slate-500 hover:text-brand-navy dark:hover:text-slate-200'
+                  : 'border-transparent text-slate-505 hover:text-brand-navy dark:hover:text-slate-200'
               )}
             >
               Experts
@@ -82,7 +85,7 @@ export const AppLayout = () => {
                 'text-sm font-semibold transition-all duration-200 pb-1.5 border-b-2',
                 location.pathname === '/resources'
                   ? 'border-brand-navy text-brand-navy dark:border-white dark:text-white'
-                  : 'border-transparent text-slate-500 hover:text-brand-navy dark:hover:text-slate-200'
+                  : 'border-transparent text-slate-505 hover:text-brand-navy dark:hover:text-slate-200'
               )}
             >
               Resources
@@ -93,7 +96,7 @@ export const AppLayout = () => {
                 'text-sm font-semibold transition-all duration-200 pb-1.5 border-b-2',
                 location.pathname === '/contact'
                   ? 'border-brand-navy text-brand-navy dark:border-white dark:text-white'
-                  : 'border-transparent text-slate-500 hover:text-brand-navy dark:hover:text-slate-200'
+                  : 'border-transparent text-slate-505 hover:text-brand-navy dark:hover:text-slate-200'
               )}
             >
               Contact
@@ -108,12 +111,14 @@ export const AppLayout = () => {
               <div className="size-8 rounded-full bg-slate-100 dark:bg-slate-800 animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-3">
-                {/* Book Now Button for logged in user */}
-                <Link to="/experts">
-                  <Button className="hidden sm:inline-flex bg-brand-brown hover:bg-[#4E2505] text-white font-semibold text-xs px-5 py-2.5 rounded-md transition duration-200">
-                    Book Now
-                  </Button>
-                </Link>
+                {/* Book Now Button for logged in user (hidden for Admin) */}
+                {user.role !== 'admin' && (
+                  <Link to="/experts">
+                    <Button className="hidden sm:inline-flex bg-brand-brown hover:bg-[#4E2505] text-white font-semibold text-xs px-5 py-2.5 rounded-md transition duration-200">
+                      Book Now
+                    </Button>
+                  </Link>
+                )}
 
                 <Link to="/profile" className="hover:opacity-90 transition-opacity ml-1" title="Hồ sơ cá nhân">
                   <Avatar className="size-9 border border-slate-200 dark:border-slate-700 shadow-sm">

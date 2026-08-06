@@ -106,3 +106,81 @@ export const createExpert = async (req: Request, res: Response) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+// PUT /api/admin/users/:id/block - Toggle block status of student (admin only)
+export const toggleBlockUser = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const user = await UserModel.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy tài khoản người dùng' });
+    }
+
+    user.isBlockedFromBooking = !user.isBlockedFromBooking;
+    await user.save();
+
+    return res.json({
+      message: `Đã ${user.isBlockedFromBooking ? 'khóa' : 'mở khóa'} quyền đặt lịch của học viên`,
+      user
+    });
+  } catch (error: any) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// PUT /api/admin/users/:id - Update user/expert profile details directly (admin only)
+export const updateUserProfile = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const {
+      displayName,
+      phone,
+      bio,
+      cancellationWarnings,
+      isBlockedFromBooking,
+      title,
+      experienceYears,
+      specialties,
+      achievements,
+      consultingStyle
+    } = req.body;
+
+    const user = await UserModel.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy tài khoản người dùng' });
+    }
+
+    // Common fields
+    if (displayName !== undefined) user.displayName = displayName;
+    if (phone !== undefined) user.phone = phone;
+    if (bio !== undefined) user.bio = bio;
+
+    // Student fields
+    if (cancellationWarnings !== undefined) user.cancellationWarnings = Number(cancellationWarnings);
+    if (isBlockedFromBooking !== undefined) user.isBlockedFromBooking = Boolean(isBlockedFromBooking);
+
+    // Expert fields
+    if (title !== undefined) user.title = title;
+    if (experienceYears !== undefined) user.experienceYears = Number(experienceYears);
+    
+    if (specialties !== undefined) {
+      user.specialties = Array.isArray(specialties)
+        ? specialties
+        : String(specialties).split(',').map((s) => s.trim()).filter(Boolean);
+    }
+    
+    if (achievements !== undefined) {
+      user.achievements = Array.isArray(achievements)
+        ? achievements
+        : String(achievements).split('\n').map((a) => a.trim()).filter(Boolean);
+    }
+    
+    if (consultingStyle !== undefined) user.consultingStyle = consultingStyle;
+
+    await user.save();
+    return res.json(user);
+  } catch (error: any) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
