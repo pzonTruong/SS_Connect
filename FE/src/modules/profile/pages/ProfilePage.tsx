@@ -7,21 +7,15 @@ import { ProfileEditForm } from '@/modules/profile/components/ProfileEditForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import type { CurrentUser } from '@/modules/auth/types/auth.types';
 
-type ProfileUser = CurrentUser & {
-  displayName?: string;
-  bio?: string;
-  phone?: string;
-  avatarUrl?: string;
-};
 
 export const ProfilePage = () => {
-  const [user, setUser] = useState<ProfileUser | null>(null);
+  const [user, setUser] = useState<CurrentUser | null>(null);
   const navigate = useNavigate();
 
   const fetchUser = async () => {
     try {
       const res = await authApi.getMe();
-      setUser(res.data as ProfileUser);
+      setUser(res.data as CurrentUser);
     } catch {
       tokenStore.clear();
       navigate('/logout');
@@ -65,10 +59,17 @@ export const ProfilePage = () => {
           <CardContent>
             {user ? (
               <ProfileEditForm
+                role={user.role}
                 defaultValues={{
                   displayName: user.displayName ?? '',
                   bio: user.bio ?? '',
                   phone: user.phone ?? '',
+                  title: user.title ?? '',
+                  experienceYears: user.experienceYears ?? 0,
+                  specialties: user.specialties ? user.specialties.join(', ') : '',
+                  achievements: user.achievements ? user.achievements.join('\n') : '',
+                  consultingStyle: user.consultingStyle ?? '',
+                  consultingType: user.consultingType ?? ['online'],
                 }}
                 onSuccess={fetchUser}
               />

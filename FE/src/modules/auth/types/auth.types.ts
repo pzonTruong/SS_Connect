@@ -15,4 +15,13 @@ export interface CurrentUser {
   phone?: string;
   createdAt: string;
   updatedAt: string;
+
+  // Expert fields
+  title?: string;
+  specialties?: string[];
+  experienceYears?: number;
+  achievements?: string[];
+  consultingStyle?: string;
+  consultingType?: ('online' | 'offline')[];
 }
+
