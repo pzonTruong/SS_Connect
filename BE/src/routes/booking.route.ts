@@ -7,7 +7,8 @@ import {
   rescheduleBooking,
   adminGetAllBookings,
   adminRescheduleBooking,
-  adminGetStats
+  adminGetStats,
+  adminExportExcel
 } from '../controllers/booking.controller';
 import { authGuard, adminGuard } from '../middlewares/auth.middleware';
 
@@ -28,4 +29,5 @@ bookingRouter.put('/:id/status', authGuard, updateBookingStatus);
 bookingRouter.get('/admin/all', authGuard, adminGuard, adminGetAllBookings);
 bookingRouter.put('/admin/:id/reschedule', authGuard, adminGuard, adminRescheduleBooking);
 bookingRouter.get('/admin/stats', authGuard, adminGuard, adminGetStats);
+bookingRouter.get('/admin/export-excel', authGuard, adminGuard, adminExportExcel);
 

@@ -29,6 +29,7 @@ import { Label } from '@/shared/components/ui/label';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { toast } from 'sonner';
 import { formatTimeRange } from '@/shared/lib/utils';
+import * as XLSX from 'xlsx';
 
 interface UserRecord {
   _id: string;
@@ -334,52 +335,52 @@ export const AdminDashboardPage = () => {
     }
   };
 
-  // CSV Report Generator
-  const exportToCSV = () => {
+  // Excel Report Generator — fully client-side via SheetJS
+  const exportToExcel = () => {
     if (bookings.length === 0) {
       toast.warning('Không có bản ghi lịch hẹn để xuất báo cáo');
       return;
     }
 
-    const headers = [
-      'Học viên',
-      'Email học viên',
-      'SĐT học viên',
-      'Chuyên gia',
-      'Email chuyên gia',
-      'Mảng tư vấn',
-      'Chủ đề',
-      'Ngày tư vấn',
-      'Giờ tư vấn',
-      'Hình thức',
-      'Trạng thái'
-    ];
+    const getStatusLabel = (status: Booking['status']) => {
+      const map: Record<string, string> = {
+        pending: 'Chờ duyệt',
+        confirmed: 'Đã duyệt',
+        completed: 'Hoàn thành',
+        cancelled_student: 'Học viên hủy',
+        cancelled_expert: 'SS Hủy',
+        no_show: 'Vắng mặt',
+        reschedule_needed: 'Yêu cầu đổi lịch',
+      };
+      return map[status] ?? status;
+    };
 
-    const rows = bookings.map((b) => [
-      `"${b.studentName || ''}"`,
-      `"${b.studentEmail || ''}"`,
-      `"${b.studentPhone || ''}"`,
-      `"${b.expertId?.displayName || ''}"`,
-      `"${b.expertId?.email || ''}"`,
-      `"${b.expertId?.title || ''}"`,
-      `"${b.bookingType || ''}"`,
-      `"${b.date || ''}"`,
-      `"${b.time || ''}"`,
-      `"${b.mode || ''}"`,
-      `"${b.status || ''}"`
-    ]);
+    const rows = bookings.map(b => ({
+      'Học viên': b.studentName,
+      'Email học viên': b.studentEmail,
+      'SĐT học viên': b.studentPhone,
+      'Chuyên gia': b.expertId?.displayName ?? '',
+      'Email chuyên gia': b.expertId?.email ?? '',
+      'Mảng tư vấn': b.expertId?.title ?? '',
+      'Chủ đề tư vấn': b.bookingType,
+      'Ngày tư vấn': b.date,
+      'Giờ tư vấn': formatTimeRange(b.time),
+      'Hình thức': b.mode === 'online' ? 'Online' : 'Offline',
+      'Trạng thái': getStatusLabel(b.status),
+    }));
 
-    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `bao_cao_lich_tu_van_ssconnect_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('Đã tải xuống báo cáo lịch tư vấn dạng CSV!');
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [18, 26, 14, 20, 26, 20, 28, 12, 16, 10, 16].map(w => ({ wch: w }));
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Báo cáo SSConnect');
+
+    const dateStr = new Date().toISOString().split('T')[0];
+    const filename = `bao_cao_lich_tu_van_ssconnect_${dateStr}.xlsx`;
+
+    // XLSX.writeFile uses a data URL internally — works on Chrome, Edge, Firefox
+    XLSX.writeFile(wb, filename, { bookType: 'xlsx', compression: true });
+    toast.success('Xuất báo cáo Excel thành công!');
   };
 
   const getStatusBadge = (status: Booking['status']) => {
@@ -468,10 +469,10 @@ export const AdminDashboardPage = () => {
         {/* Action Header controls */}
         <div className="flex items-center gap-2 shrink-0 relative z-10 self-start md:self-center">
           <button 
-            onClick={exportToCSV} 
+            onClick={exportToExcel} 
             className="inline-flex items-center justify-center rounded-lg font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm cursor-pointer border-0 px-3.5 py-2.5 transition-all"
           >
-            <FileSpreadsheet className="size-4 mr-1.5" /> Xuất báo cáo CSV
+            <FileSpreadsheet className="size-4 mr-1.5" /> Xuất báo cáo Excel
           </button>
           <button 
             onClick={loadAllData} 

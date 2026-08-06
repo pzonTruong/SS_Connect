@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import * as XLSX from 'xlsx';
 import { BookingModel } from '../models/booking.model';
 import { UserModel } from '../models/user.model';
 import {
@@ -570,6 +571,79 @@ export const rescheduleBooking = async (req: Request, res: Response) => {
     sendRescheduleSubmissionToStudent(booking.studentEmail, booking, expertName).catch(console.error);
 
     return res.json(booking);
+  } catch (error: any) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// GET /api/bookings/admin/export-excel - Export genuine xlsx file for admin
+export const adminExportExcel = async (req: Request, res: Response) => {
+  try {
+    const bookings = await BookingModel.find().populate({
+      path: 'expertId',
+      select: 'displayName email title'
+    }).lean();
+
+    const getStatusText = (status: string) => {
+      switch (status) {
+        case 'pending': return 'Ch\u1edd duy\u1ec7t';
+        case 'confirmed': return '\u0110\u00e3 duy\u1ec7t';
+        case 'completed': return 'Ho\u00e0n th\u00e0nh';
+        case 'cancelled_student': return 'H\u1ecdc vi\u00ean h\u1ee7y';
+        case 'cancelled_expert': return 'SS H\u1ee7y';
+        case 'no_show': return 'V\u1eafng m\u1eb7t';
+        case 'reschedule_needed': return 'Y\u00eau c\u1ea7u \u0111\u1ed5i l\u1ecbch';
+        default: return status;
+      }
+    };
+
+    const formatTime = (startTime: string): string => {
+      if (!startTime) return '';
+      try {
+        const [h, m] = startTime.split(':');
+        const end = String(parseInt(h, 10) + 2).padStart(2, '0');
+        return `${startTime} - ${end}:${m}`;
+      } catch { return startTime; }
+    };
+
+    // Build rows as plain objects for SheetJS
+    const sheetData = [
+      [
+        'H\u1ecdc vi\u00ean', 'Email h\u1ecdc vi\u00ean', 'S\u0110T h\u1ecdc vi\u00ean',
+        'Chuy\u00ean gia', 'Email chuy\u00ean gia', 'M\u1ea3ng t\u01b0 v\u1ea5n',
+        'Ch\u1ee7 \u0111\u1ec1', 'Ng\u00e0y t\u01b0 v\u1ea5n', 'Gi\u1edd t\u01b0 v\u1ea5n',
+        'H\u00ecnh th\u1ee9c', 'Tr\u1ea1ng th\u00e1i'
+      ],
+      ...(bookings as any[]).map(b => [
+        b.studentName || '',
+        b.studentEmail || '',
+        b.studentPhone || '',
+        b.expertId?.displayName || '',
+        b.expertId?.email || '',
+        b.expertId?.title || '',
+        b.bookingType || '',
+        b.date || '',
+        formatTime(b.time || ''),
+        b.mode === 'online' ? 'Online' : 'Offline',
+        getStatusText(b.status || '')
+      ])
+    ];
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+    // Auto column widths
+    ws['!cols'] = [20, 28, 16, 22, 28, 22, 30, 14, 18, 10, 18].map(w => ({ wch: w }));
+
+    XLSX.utils.book_append_sheet(wb, ws, 'B\u00e1o c\u00e1o SSConnect');
+
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const dateStr = new Date().toISOString().split('T')[0];
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="bao_cao_lich_tu_van_ssconnect_${dateStr}.xlsx"`);
+    res.setHeader('Content-Length', buffer.length);
+    return res.send(buffer);
   } catch (error: any) {
     return res.status(500).json({ message: error.message });
   }
