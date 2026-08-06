@@ -186,24 +186,30 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
     const isCancelling = ['cancelled_student', 'cancelled_expert'].includes(status);
     const wasActive = ['pending', 'confirmed'].includes(booking.status);
 
-    if (status === 'cancelled_student' && wasActive) {
-      // Check 1-day constraint
-      const todayStr = getVietnamDateString(new Date());
-      const daysDiff = getDaysDifference(booking.date, todayStr);
-      if (daysDiff < 1) {
-        return res.status(400).json({
-          message: 'Bạn chỉ có thể hủy lịch hẹn trước tối thiểu 1 ngày.'
-        });
+    if (status === 'cancelled_student' && (wasActive || booking.status === 'reschedule_needed')) {
+      // Check 1-day constraint (skip time check if expert already requested reschedule)
+      if (wasActive) {
+        const todayStr = getVietnamDateString(new Date());
+        const daysDiff = getDaysDifference(booking.date, todayStr);
+        if (daysDiff < 1) {
+          return res.status(400).json({
+            message: 'Bạn chỉ có thể hủy lịch hẹn trước tối thiểu 1 ngày.'
+          });
+        }
       }
 
-      // Update student warnings
-      const student = await UserModel.findById(booking.studentId);
-      if (student) {
-        student.cancellationWarnings = (student.cancellationWarnings || 0) + 1;
-        if (student.cancellationWarnings >= 2) {
-          student.isBlockedFromBooking = true;
+      // Only count as a warning if the student cancelled on their own initiative
+      // (i.e. NOT in response to an expert-requested reschedule)
+      const expertRequestedReschedule = booking.status === 'reschedule_needed';
+      if (!expertRequestedReschedule) {
+        const student = await UserModel.findById(booking.studentId);
+        if (student) {
+          student.cancellationWarnings = (student.cancellationWarnings || 0) + 1;
+          if (student.cancellationWarnings >= 2) {
+            student.isBlockedFromBooking = true;
+          }
+          await student.save();
         }
-        await student.save();
       }
     }
 
@@ -216,7 +222,7 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
       }
     }
 
-    if (isCancelling && wasActive) {
+    if (isCancelling && (wasActive || booking.status === 'reschedule_needed')) {
       const expert = await UserModel.findById(booking.expertId);
       if (expert) {
         const slotIndex = expert.availableSlots?.findIndex(
