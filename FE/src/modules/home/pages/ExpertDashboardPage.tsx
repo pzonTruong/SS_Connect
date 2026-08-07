@@ -50,9 +50,88 @@ export const ExpertDashboardPage = () => {
   const [availableSlots, setAvailableSlots] = useState<Timeslot[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
   
-  // Slot Form State
-  const [newDate, setNewDate] = useState('');
-  const [newTime, setNewTime] = useState('09:00');
+  // Slot Form State (Batch selection)
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  const [dateInput, setDateInput] = useState('');
+  const [selectedTimes, setSelectedTimes] = useState<string[]>(['09:00', '14:00']);
+
+  const TIME_OPTIONS = [
+    { time: '08:00', label: '08:00 - 10:00' },
+    { time: '09:00', label: '09:00 - 11:00' },
+    { time: '10:00', label: '10:00 - 12:00' },
+    { time: '11:00', label: '11:00 - 13:00' },
+    { time: '14:00', label: '14:00 - 16:00' },
+    { time: '15:00', label: '15:00 - 17:00' },
+    { time: '16:00', label: '16:00 - 18:00' },
+    { time: '17:00', label: '17:00 - 19:00' },
+    { time: '19:00', label: '19:00 - 21:00' },
+    { time: '20:00', label: '20:00 - 22:00' },
+  ];
+
+  const handleAddDateInput = () => {
+    if (!dateInput) return;
+    if (selectedDates.includes(dateInput)) {
+      toast.warning('Ngày này đã có trong danh sách chọn');
+      return;
+    }
+    setSelectedDates([...selectedDates, dateInput]);
+    setDateInput('');
+  };
+
+  const handleRemoveDate = (dateToRemove: string) => {
+    setSelectedDates(selectedDates.filter(d => d !== dateToRemove));
+  };
+
+  const toggleTimeSelection = (timeStr: string) => {
+    if (selectedTimes.includes(timeStr)) {
+      setSelectedTimes(selectedTimes.filter(t => t !== timeStr));
+    } else {
+      setSelectedTimes([...selectedTimes, timeStr]);
+    }
+  };
+
+  const handleBatchAddSlots = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedDates.length === 0) {
+      toast.warning('Vui lòng chọn ít nhất 1 ngày tư vấn');
+      return;
+    }
+    if (selectedTimes.length === 0) {
+      toast.warning('Vui lòng chọn ít nhất 1 khung giờ');
+      return;
+    }
+
+    const newSlotsToAdd: Timeslot[] = [];
+    let duplicateCount = 0;
+
+    selectedDates.forEach(date => {
+      selectedTimes.forEach(time => {
+        const exists = availableSlots.some(s => s.date === date && s.time === time);
+        if (!exists) {
+          newSlotsToAdd.push({ date, time, booked: false });
+        } else {
+          duplicateCount++;
+        }
+      });
+    });
+
+    if (newSlotsToAdd.length === 0) {
+      toast.warning('Tất cả các khung giờ được chọn đã tồn tại trước đó');
+      return;
+    }
+
+    const updatedSlots = [...availableSlots, ...newSlotsToAdd];
+
+    try {
+      await http.put('/profile/expert-slots', { availableSlots: updatedSlots });
+      toast.success(`Đã thêm thành công ${newSlotsToAdd.length} khung giờ rảnh!${duplicateCount > 0 ? ` (Bỏ qua ${duplicateCount} giờ đã trùng)` : ''}`);
+      setAvailableSlots(updatedSlots);
+      setSelectedDates([]);
+    } catch (err) {
+      console.error(err);
+      toast.error('Không thể cập nhật lịch trình');
+    }
+  };
   
   // Note Form State
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
@@ -103,31 +182,7 @@ export const ExpertDashboardPage = () => {
     }
   };
 
-  const handleAddSlot = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newDate) {
-      toast.warning('Vui lòng chọn ngày tư vấn');
-      return;
-    }
 
-    const slotExists = availableSlots.some((slot) => slot.date === newDate && slot.time === newTime);
-    if (slotExists) {
-      toast.warning('Khung giờ này đã tồn tại trong lịch trình của bạn');
-      return;
-    }
-
-    const updatedSlots = [...availableSlots, { date: newDate, time: newTime, booked: false }];
-    
-    try {
-      await http.put('/profile/expert-slots', { availableSlots: updatedSlots });
-      toast.success('Thêm khung giờ rảnh thành công');
-      setAvailableSlots(updatedSlots);
-      setNewDate('');
-    } catch (err) {
-      console.error(err);
-      toast.error('Không thể cập nhật lịch trình');
-    }
-  };
 
   const handleDeleteSlot = async (slotToDelete: Timeslot) => {
     if (slotToDelete.booked) {
@@ -384,37 +439,93 @@ export const ExpertDashboardPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 space-y-5">
-            <form onSubmit={handleAddSlot} className="space-y-4 border-b pb-4">
+            <form onSubmit={handleBatchAddSlots} className="space-y-4 border-b pb-4">
+              {/* Step 1: Dates selection */}
               <div className="space-y-2">
-                <Label htmlFor="slot-date" className="font-semibold text-xs">Chọn ngày tư vấn:</Label>
-                <Input
-                  id="slot-date"
-                  type="date"
-                  value={newDate}
-                  min={new Date().toISOString().split('T')[0]}
-                  onChange={(e) => setNewDate(e.target.value)}
-                  className="text-xs h-9"
-                />
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="slot-date" className="font-bold text-xs uppercase tracking-wider text-slate-500">1. Chọn các ngày tư vấn:</Label>
+                  <span className="text-[10px] text-primary font-bold">Đã chọn: {selectedDates.length} ngày</span>
+                </div>
+
+                <div className="flex gap-2">
+                  <Input
+                    id="slot-date"
+                    type="date"
+                    value={dateInput}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => setDateInput(e.target.value)}
+                    className="text-xs h-9 flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddDateInput}
+                    disabled={!dateInput}
+                    className="h-9 px-3 text-xs font-semibold shrink-0"
+                  >
+                    + Thêm ngày
+                  </Button>
+                </div>
+
+                {/* Date badges list */}
+                {selectedDates.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {selectedDates.sort().map((d) => (
+                      <span
+                        key={d}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-lg border border-primary/20"
+                      >
+                        {d}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveDate(d)}
+                          className="hover:text-destructive text-primary/70 font-bold ml-1"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
+              {/* Step 2: Time slots multi-select grid */}
               <div className="space-y-2">
-                <Label htmlFor="slot-time" className="font-semibold text-xs">Chọn khung giờ:</Label>
-                <select
-                  id="slot-time"
-                  value={newTime}
-                  onChange={(e) => setNewTime(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  {['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '19:00', '20:00'].map((time) => (
-                    <option key={time} value={time}>
-                      {formatTimeRange(time)} (2 tiếng)
-                    </option>
-                  ))}
-                </select>
+                <div className="flex items-center justify-between">
+                  <Label className="font-bold text-xs uppercase tracking-wider text-slate-500">2. Chọn các khung giờ rảnh:</Label>
+                  <span className="text-[10px] text-primary font-bold">Đã chọn: {selectedTimes.length} giờ</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-1.5">
+                  {TIME_OPTIONS.map(({ time, label }) => {
+                    const isSelected = selectedTimes.includes(time);
+                    return (
+                      <button
+                        key={time}
+                        type="button"
+                        onClick={() => toggleTimeSelection(time)}
+                        className={`px-2.5 py-2 rounded-lg text-[11px] font-semibold border transition-all text-center flex items-center justify-between ${
+                          isSelected
+                            ? 'bg-primary text-primary-foreground border-primary shadow-xs font-bold'
+                            : 'bg-card text-foreground border-border hover:bg-primary/5 hover:border-primary/30'
+                        }`}
+                      >
+                        <span>{label}</span>
+                        {isSelected && <Check className="size-3 text-primary-foreground shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              <Button type="submit" size="sm" className="w-full text-xs font-semibold bg-brand-brown hover:bg-[#4E2505] text-white dark:bg-slate-200 dark:text-slate-950 dark:hover:bg-slate-350 transition-all duration-200">
-                <Plus className="size-3.5 mr-1" /> Thêm khung giờ rảnh
+              <Button
+                type="submit"
+                size="sm"
+                disabled={selectedDates.length === 0 || selectedTimes.length === 0}
+                className="w-full text-xs font-bold bg-brand-brown hover:bg-[#4E2505] text-white transition-all duration-200 h-10 shadow-xs"
+              >
+                <Plus className="size-4 mr-1.5" /> Tạo {selectedDates.length * selectedTimes.length > 0 ? selectedDates.length * selectedTimes.length : ''} khung giờ cùng lúc
               </Button>
             </form>
 
