@@ -11,6 +11,9 @@ import { ExpertsListPage } from '@/modules/home/pages/ExpertsListPage';
 import { ExpertProfilePage } from '@/modules/home/pages/ExpertProfilePage';
 import { ResourcesPage } from '@/modules/home/pages/ResourcesPage';
 import { ContactPage } from '@/modules/home/pages/ContactPage';
+import { PrivacyPolicyPage } from '@/modules/home/pages/PrivacyPolicyPage';
+import { TermsOfServicePage } from '@/modules/home/pages/TermsOfServicePage';
+import { FaqPage } from '@/modules/home/pages/FaqPage';
 import { BookingPage } from '@/modules/home/pages/BookingPage';
 import { BookingSuccessPage } from '@/modules/home/pages/BookingSuccessPage';
 import { StudentBookingsPage } from '@/modules/home/pages/StudentBookingsPage';
@@ -37,6 +40,9 @@ function App() {
         <Route path="/experts/:id" element={<ExpertProfilePage />} />
         <Route path="/resources" element={<ResourcesPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+        <Route path="/faq" element={<FaqPage />} />
 
         {/* Protected routes */}
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

@@ -102,13 +102,17 @@ export const AppLayout = () => {
           {/* ── Logo ── */}
           <Link
             to="/"
-            className="flex items-center gap-2.5 text-lg font-bold tracking-tight text-brand-navy dark:text-white shrink-0"
+            className="flex items-center gap-3 group shrink-0"
           >
-            <img src={logoImg} alt="Student Success" className="h-11 w-11 object-contain rounded-lg" />
-            <span className="hidden sm:block leading-tight">
-              Student Success<br />
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400 tracking-normal">Connect</span>
-            </span>
+            <img src={logoImg} alt="Student Success" className="h-9 w-9 object-contain rounded-lg transition-transform duration-200 group-hover:scale-105" />
+            <div className="flex flex-col">
+              <span className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
+                Student Success
+              </span>
+              <span className="text-[11px] font-semibold text-brand-blue dark:text-sky-400 tracking-wider uppercase leading-tight">
+                Connect
+              </span>
+            </div>
           </Link>
 
           {/* ── Centered Nav links ── */}

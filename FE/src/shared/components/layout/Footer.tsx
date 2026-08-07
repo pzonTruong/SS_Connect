@@ -43,7 +43,7 @@ export const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="#"
+                  to="/privacy-policy"
                   className="text-sm text-slate-600 dark:text-slate-400 hover:text-brand-blue dark:hover:text-sky-400 transition-colors duration-200"
                 >
                   Privacy Policy
@@ -51,7 +51,7 @@ export const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="#"
+                  to="/terms-of-service"
                   className="text-sm text-slate-600 dark:text-slate-400 hover:text-brand-blue dark:hover:text-sky-400 transition-colors duration-200"
                 >
                   Terms of Service
@@ -59,7 +59,7 @@ export const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/contact"
+                  to="/faq"
                   className="text-sm text-slate-600 dark:text-slate-400 hover:text-brand-blue dark:hover:text-sky-400 transition-colors duration-200"
                 >
                   FAQ
@@ -74,7 +74,7 @@ export const Footer = () => {
           <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            © 2024 Student Success Department. All rights reserved.
+            © {new Date().getFullYear()} Student Success Department. All rights reserved.
           </p>
         </div>
       </div>
