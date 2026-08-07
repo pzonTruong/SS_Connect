@@ -343,3 +343,50 @@ export const sendRescheduleSubmissionToStudent = async (
   );
 };
 
+export const sendMeetingReminderEmail = async (
+  to: string,
+  booking: any,
+  recipientName: string,
+  leadTimeText: string
+) => {
+  const meetingHtml = booking.mode === 'online'
+    ? `<p style="margin:0 0 8px;font-size:14px;color:#1e40af;"><b>Link cuộc họp Online:</b> <a href="${booking.meetingLink || 'https://meet.google.com'}" style="color:#2563eb;text-decoration:underline;">Tham gia ngay</a></p>`
+    : `<p style="margin:0 0 8px;font-size:14px;color:#1e40af;"><b>Địa điểm:</b> Văn phòng Student Success Hub tại Cơ sở MindX</p>`;
+
+  await sendEmail(
+    to,
+    `[SS Connect] NHẮC LỊCH: Buổi tư vấn của bạn sắp bắt đầu (${leadTimeText})`,
+    `
+      <div style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,sans-serif;">
+        <div style="max-width:560px;margin:0 auto;padding:24px 16px;">
+          <div style="background:#ffffff;border:1px solid #e4e4e7;border-radius:14px;padding:24px;">
+            <p style="margin:0 0 8px;font-size:12px;color:#71717a;letter-spacing:0.08em;text-transform:uppercase;">
+              Student Success Connect - Nhắc Lịch Hẹn
+            </p>
+            <h2 style="margin:0 0 14px;font-size:20px;color:#7c3aed;border-bottom:1px solid #e5e7eb;padding-bottom:10px;">⏰ Nhắc Nhở Buổi Tư Vấn Sắp Bắt Đầu</h2>
+            <p style="margin:0 0 12px;font-size:14px;color:#3f3f46;line-height:1.6;">
+              Chào <b>${recipientName}</b>,
+            </p>
+            <p style="margin:0 0 16px;font-size:14px;color:#3f3f46;line-height:1.6;">
+              Hệ thống xin nhắc bạn rằng bạn có một buổi tư vấn sắp diễn ra sau <b>${leadTimeText}</b>.
+            </p>
+            
+            <div style="background:#f3e8ff;border:1px solid #d8b4fe;border-radius:8px;padding:16px;margin-bottom:20px;">
+              <p style="margin:0 0 8px;font-size:14px;color:#5b21b6;"><b>Chủ đề tư vấn:</b> ${booking.bookingType}</p>
+              <p style="margin:0 0 8px;font-size:14px;color:#5b21b6;"><b>Thời gian:</b> ${booking.time} ngày ${booking.date}</p>
+              <p style="margin:0 0 8px;font-size:14px;color:#5b21b6;"><b>Hình thức:</b> ${booking.mode === 'online' ? 'Online' : 'Offline'}</p>
+              ${meetingHtml}
+            </div>
+
+            <p style="margin:0 0 16px;font-size:14px;color:#3f3f46;line-height:1.6;">
+              Vui lòng chuẩn bị sẵn sàng thiết bị và nội dung trao đổi trước giờ bắt đầu để buổi tư vấn đạt hiệu quả cao nhất.
+            </p>
+            <p style="margin:0;font-size:12px;color:#9ca3af;">Chúc bạn có một buổi tư vấn hữu ích!</p>
+          </div>
+        </div>
+      </div>
+    `
+  );
+};
+
+

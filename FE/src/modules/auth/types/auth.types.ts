@@ -13,6 +13,8 @@ export interface CurrentUser {
   bio?: string;
   avatarUrl?: string;
   phone?: string;
+  reminderEnabled?: boolean;
+  reminderLeadTimeMinutes?: number;
   createdAt: string;
   updatedAt: string;
 

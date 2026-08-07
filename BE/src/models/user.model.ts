@@ -24,6 +24,10 @@ export interface UserDocument extends mongoose.Document {
   cancellationWarnings?: number;
   isBlockedFromBooking?: boolean;
   
+  // Notification settings
+  reminderEnabled?: boolean;
+  reminderLeadTimeMinutes?: number;
+
   // Expert fields
   title?: string;
   specialties?: string[];
@@ -56,6 +60,10 @@ const userSchema = new Schema<UserDocument>(
     bio: { type: String, maxlength: 500 }, // Expanded bio max length
     avatarUrl: { type: String },
     phone: { type: String, trim: true },
+
+    // Notification settings
+    reminderEnabled: { type: Boolean, default: true },
+    reminderLeadTimeMinutes: { type: Number, default: 30 },
 
     // Student schemas
     cancellationWarnings: { type: Number, default: 0 },

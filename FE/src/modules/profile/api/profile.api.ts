@@ -1,12 +1,19 @@
 import { http } from '@/shared/api/http';
 
 export const profileApi = {
-  updateProfile: (data: { displayName?: string; bio?: string; phone?: string }) =>
-    http.patch('/profile', data),
+  updateProfile: (data: {
+    displayName?: string;
+    bio?: string;
+    phone?: string;
+    reminderEnabled?: boolean;
+    reminderLeadTimeMinutes?: number;
+  }) => http.patch('/profile', data),
   updateExpertDetails: (data: {
     displayName?: string;
     bio?: string;
     phone?: string;
+    reminderEnabled?: boolean;
+    reminderLeadTimeMinutes?: number;
     title?: string;
     specialties?: string[];
     experienceYears?: number;

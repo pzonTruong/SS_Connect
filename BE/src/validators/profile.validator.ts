@@ -11,6 +11,8 @@ export const updateProfileSchema = z.object({
     .transform((v) => (v === '' ? undefined : v))
     .pipe(z.string().min(7).max(20).optional())
     .optional(),
+  reminderEnabled: z.boolean().optional(),
+  reminderLeadTimeMinutes: z.number().min(5).max(10080).optional(),
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

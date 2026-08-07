@@ -19,6 +19,8 @@ export interface BookingDocument extends mongoose.Document {
   notes?: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled_student' | 'cancelled_expert' | 'no_show' | 'reschedule_needed';
   postConsultationNotes?: string;
+  reminderSentStudent?: boolean;
+  reminderSentExpert?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,7 +56,9 @@ const bookingSchema = new Schema<BookingDocument>(
       ],
       default: 'pending'
     },
-    postConsultationNotes: { type: String, trim: true }
+    postConsultationNotes: { type: String, trim: true },
+    reminderSentStudent: { type: Boolean, default: false },
+    reminderSentExpert: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

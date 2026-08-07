@@ -209,6 +209,13 @@ export const AppLayout = () => {
                       <User className="size-4 text-brand-blue flex-shrink-0" />
                       <span className="font-medium text-sm">Hồ sơ cá nhân</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate('/settings')}
+                      className="gap-3 py-2.5 px-3 rounded-lg"
+                    >
+                      <Settings className="size-4 text-brand-blue flex-shrink-0" />
+                      <span className="font-medium text-sm">Cài đặt hệ thống</span>
+                    </DropdownMenuItem>
 
                     <DropdownMenuSeparator className="my-1.5" />
 

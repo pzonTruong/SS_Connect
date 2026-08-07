@@ -8,11 +8,18 @@ const EXCLUDED_FIELDS = '-password -otpCode -otpExpiresAt -resetToken -resetToke
 
 export const updateProfile = async (req: Request, res: Response) => {
   const userId = req.user?.sub;
-  const { displayName, bio, phone } = req.body as UpdateProfileInput;
+  const { displayName, bio, phone, reminderEnabled, reminderLeadTimeMinutes } = req.body as UpdateProfileInput;
+
+  const updateData: any = {};
+  if (displayName !== undefined) updateData.displayName = displayName;
+  if (bio !== undefined) updateData.bio = bio;
+  if (phone !== undefined) updateData.phone = phone;
+  if (reminderEnabled !== undefined) updateData.reminderEnabled = reminderEnabled;
+  if (reminderLeadTimeMinutes !== undefined) updateData.reminderLeadTimeMinutes = reminderLeadTimeMinutes;
 
   const user = await UserModel.findByIdAndUpdate(
     userId,
-    { displayName, bio, phone },
+    updateData,
     { new: true, runValidators: true }
   ).select(EXCLUDED_FIELDS);
 
@@ -78,7 +85,7 @@ export const getExpertById = async (req: Request, res: Response) => {
 export const updateExpertDetails = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.sub;
-    const { title, specialties, experienceYears, achievements, consultingStyle, consultingType, displayName, bio, phone } = req.body;
+    const { title, specialties, experienceYears, achievements, consultingStyle, consultingType, displayName, bio, phone, reminderEnabled, reminderLeadTimeMinutes } = req.body;
 
     const user = await UserModel.findById(userId);
     if (!user || user.role !== 'expert') {
@@ -88,6 +95,8 @@ export const updateExpertDetails = async (req: Request, res: Response) => {
     if (displayName !== undefined) user.displayName = displayName;
     if (bio !== undefined) user.bio = bio;
     if (phone !== undefined) user.phone = phone;
+    if (reminderEnabled !== undefined) user.reminderEnabled = reminderEnabled;
+    if (reminderLeadTimeMinutes !== undefined) user.reminderLeadTimeMinutes = reminderLeadTimeMinutes;
     if (title !== undefined) user.title = title;
     if (specialties !== undefined) user.specialties = specialties;
     if (experienceYears !== undefined) user.experienceYears = experienceYears;

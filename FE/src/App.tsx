@@ -20,6 +20,7 @@ import { StudentBookingsPage } from '@/modules/home/pages/StudentBookingsPage';
 import { ExpertDashboardPage } from '@/modules/home/pages/ExpertDashboardPage';
 import { AdminDashboardPage } from '@/modules/home/pages/AdminDashboardPage';
 import { ProfilePage } from '@/modules/profile/pages/ProfilePage';
+import { SettingsPage } from '@/modules/settings/pages/SettingsPage';
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
 
         {/* Protected routes */}
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/booking/:expertId" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
         <Route path="/booking-success" element={<ProtectedRoute><BookingSuccessPage /></ProtectedRoute>} />
         <Route path="/my-bookings" element={<ProtectedRoute><StudentBookingsPage /></ProtectedRoute>} />
