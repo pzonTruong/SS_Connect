@@ -20,7 +20,9 @@ export const env = {
   resetTokenExpiresMinutes: Number(rawEnv.RESET_TOKEN_EXPIRES_MINUTES ?? 15),
   cloudinaryCloudName: rawEnv.CLOUDINARY_CLOUD_NAME,
   cloudinaryApiKey: rawEnv.CLOUDINARY_API_KEY,
-  cloudinaryApiSecret: rawEnv.CLOUDINARY_API_SECRET
+  cloudinaryApiSecret: rawEnv.CLOUDINARY_API_SECRET,
+  geminiApiKey: rawEnv.GEMINI_API_KEY,
+  geminiModel: rawEnv.GEMINI_MODEL ?? 'gemini-1.5-flash'
 };
 
 if (!env.mongoUri || !env.jwtSecret) {

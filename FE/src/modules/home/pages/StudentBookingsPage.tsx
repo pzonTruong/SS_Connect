@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Calendar, Clock, Video, CheckCircle, XCircle, Info, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Calendar, Clock, Video, CheckCircle, XCircle, Info, RefreshCw, AlertTriangle, Star } from 'lucide-react';
 import { http } from '@/shared/api/http';
 import { Card, CardContent, CardHeader } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
 import { toast } from 'sonner';
 import { formatTimeRange } from '@/shared/lib/utils';
+import { ReviewModal } from '../components/ReviewModal';
 
 interface Expert {
   _id: string;
@@ -30,11 +31,15 @@ interface Booking {
   issues: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled_student' | 'cancelled_expert' | 'no_show' | 'reschedule_needed';
   postConsultationNotes?: string;
+  isReviewed?: boolean;
 }
 
 export const StudentBookingsPage = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Review modal state
+  const [reviewBooking, setReviewBooking] = useState<Booking | null>(null);
 
   // Reschedule form state (for responding to expert's reschedule request)
   const [reschedulingId, setReschedulingId] = useState<string | null>(null);
@@ -479,11 +484,42 @@ export const StudentBookingsPage = () => {
                       )}
                     </div>
                   )}
+
+                  {/* ─── Completed booking action: Review session ─── */}
+                  {booking.status === 'completed' && (
+                    <div className="flex justify-end gap-3 pt-3 border-t">
+                      {booking.isReviewed ? (
+                        <Badge variant="outline" className="border-emerald-400 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 font-semibold text-xs py-1 px-3 flex items-center gap-1.5">
+                          <CheckCircle className="size-3.5" /> Đã gửi đánh giá
+                        </Badge>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => setReviewBooking(booking)}
+                          className="text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-sm"
+                        >
+                          <Star className="size-3.5 mr-1.5 fill-white" /> Đánh giá buổi tư vấn
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
           })}
         </div>
+      )}
+
+      {/* Review Modal */}
+      {reviewBooking && (
+        <ReviewModal
+          isOpen={!!reviewBooking}
+          onClose={() => setReviewBooking(null)}
+          bookingId={reviewBooking._id}
+          expertName={reviewBooking.expertId?.displayName || 'Chuyên gia'}
+          bookingType={reviewBooking.bookingType}
+          onSuccess={fetchBookings}
+        />
       )}
     </div>
   );

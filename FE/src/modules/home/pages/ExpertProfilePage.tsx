@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Briefcase, Award, Compass, Heart, Calendar, CheckCircle2, Clock, RefreshCw, Loader2 } from 'lucide-react';
+import { Briefcase, Award, Compass, Heart, Calendar, CheckCircle2, Clock, RefreshCw, Loader2, Star, MessageSquare } from 'lucide-react';
 import { http } from '@/shared/api/http';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -11,6 +11,15 @@ interface Timeslot {
   date: string;
   time: string;
   booked: boolean;
+}
+
+interface Review {
+  _id: string;
+  studentId?: { displayName?: string; avatarUrl?: string };
+  rating: number;
+  comment?: string;
+  createdAt: string;
+  bookingId?: { bookingType?: string };
 }
 
 interface Expert {
@@ -26,6 +35,8 @@ interface Expert {
   consultingStyle?: string;
   availableSlots?: Timeslot[];
   consultingType?: string[];
+  ratingAverage?: number;
+  reviewCount?: number;
 }
 
 export const ExpertProfilePage = () => {
@@ -34,6 +45,7 @@ export const ExpertProfilePage = () => {
   const rescheduleBookingId = searchParams.get('rescheduleBookingId') || '';
 
   const [expert, setExpert] = useState<Expert | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSlot, setSelectedSlot] = useState<Timeslot | null>(null);
   const [activeDate, setActiveDate] = useState<string>('');
@@ -52,6 +64,10 @@ export const ExpertProfilePage = () => {
         toast.error('Không thể tìm thấy thông tin chuyên gia');
       })
       .finally(() => setLoading(false));
+
+    http.get(`/reviews/expert/${id}`)
+      .then((res) => setReviews(res.data))
+      .catch(() => setReviews([]));
   }, [id]);
 
   // Group slots by date
@@ -150,8 +166,16 @@ export const ExpertProfilePage = () => {
             <div className="space-y-1">
               <h1 className="text-2xl font-bold tracking-tight">{expert.displayName}</h1>
               <p className="text-sm font-semibold text-primary uppercase tracking-wide">{expert.title || 'SS Consultant'}</p>
+              
+              {/* Rating average badge */}
+              <div className="flex items-center justify-center sm:justify-start gap-1 text-xs font-bold text-amber-500 pt-1">
+                <Star className="size-4 fill-amber-400 text-amber-400" />
+                <span>{expert.ratingAverage ? expert.ratingAverage.toFixed(1) : '5.0'} / 5.0</span>
+                <span className="text-muted-foreground font-normal">({expert.reviewCount || reviews.length} lượt đánh giá)</span>
+              </div>
+
               {expert.experienceYears && (
-                <div className="flex items-center justify-center sm:justify-start gap-1 text-xs text-muted-foreground font-medium">
+                <div className="flex items-center justify-center sm:justify-start gap-1 text-xs text-muted-foreground font-medium pt-1">
                   <Briefcase className="size-4 text-slate-400" />
                   <span>{expert.experienceYears} năm kinh nghiệm tư vấn định hướng</span>
                 </div>
@@ -223,6 +247,45 @@ export const ExpertProfilePage = () => {
               </div>
             )}
           </div>
+        </section>
+
+        {/* Student Reviews Section */}
+        <section className="bg-card rounded-2xl border p-6 space-y-4 shadow-sm">
+          <h2 className="text-lg font-bold tracking-tight border-b pb-2 flex items-center gap-2">
+            <MessageSquare className="size-5 text-primary" /> Đánh giá từ học viên ({reviews.length})
+          </h2>
+
+          {reviews.length === 0 ? (
+            <p className="text-xs text-muted-foreground py-4">Chuyên gia chưa có đánh giá trực tiếp nào từ học viên.</p>
+          ) : (
+            <div className="space-y-3">
+              {reviews.map((rev) => (
+                <div key={rev._id} className="border-b last:border-0 pb-3 space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-foreground">
+                      <span>{rev.studentId?.displayName || 'Học viên ẩn danh'}</span>
+                      <span className="text-[10px] text-muted-foreground font-normal">• {rev.bookingId?.bookingType || 'Tư vấn'}</span>
+                    </div>
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          className={`size-3 ${
+                            s <= rev.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-slate-700'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  {rev.comment && (
+                    <p className="text-muted-foreground leading-relaxed italic">
+                      "{rev.comment}"
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       </div>
 

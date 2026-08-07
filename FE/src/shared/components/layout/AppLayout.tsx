@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, Sun, Moon, Monitor, Settings, LayoutDashboard, User } from 'lucide-react';
+import { LogOut, Sun, Moon, Monitor, Settings, LayoutDashboard, User, History } from 'lucide-react';
 import logoImg from '@/assets/ssConnect_favicon.png';
 import { ThemeToggle } from '@/shared/components/ui/theme-toggle';
 import { authApi } from '@/modules/auth/api/auth.api';
@@ -116,21 +116,24 @@ export const AppLayout = () => {
           </Link>
 
           {/* ── Centered Nav links ── */}
-          <nav className="hidden md:flex items-center gap-6 flex-1 justify-center">
-            {navLinks.map(({ to, label }) => (
-              <Link
-                key={to}
-                to={to}
-                className={cn(
-                  'text-sm font-semibold transition-all duration-200 pb-1 border-b-2',
-                  location.pathname === to
-                    ? 'border-brand-navy text-brand-navy dark:border-white dark:text-white'
-                    : 'border-transparent text-slate-500 hover:text-brand-navy dark:hover:text-slate-200'
-                )}
-              >
-                {label}
-              </Link>
-            ))}
+          <nav className="hidden md:flex items-center gap-2 flex-1 justify-center">
+            {navLinks.map(({ to, label }) => {
+              const isActive = location.pathname === to;
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  className={cn(
+                    'text-sm font-bold px-4 py-2 rounded-xl transition-all duration-200',
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white font-semibold'
+                  )}
+                >
+                  {label}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* ── Right Controls ── */}
@@ -202,6 +205,15 @@ export const AppLayout = () => {
                       <LayoutDashboard className="size-4 text-brand-blue flex-shrink-0" />
                       <span className="font-medium text-sm">Dashboard</span>
                     </DropdownMenuItem>
+                    {user?.role === 'user' && (
+                      <DropdownMenuItem
+                        onClick={() => navigate('/consultation-history')}
+                        className="gap-3 py-2.5 px-3 rounded-lg"
+                      >
+                        <History className="size-4 text-brand-blue flex-shrink-0" />
+                        <span className="font-medium text-sm">Lịch sử tư vấn</span>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem
                       onClick={() => navigate('/profile')}
                       className="gap-3 py-2.5 px-3 rounded-lg"

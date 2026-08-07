@@ -17,6 +17,7 @@ import { FaqPage } from '@/modules/home/pages/FaqPage';
 import { BookingPage } from '@/modules/home/pages/BookingPage';
 import { BookingSuccessPage } from '@/modules/home/pages/BookingSuccessPage';
 import { StudentBookingsPage } from '@/modules/home/pages/StudentBookingsPage';
+import { ConsultationHistoryPage } from '@/modules/home/pages/ConsultationHistoryPage';
 import { ExpertDashboardPage } from '@/modules/home/pages/ExpertDashboardPage';
 import { AdminDashboardPage } from '@/modules/home/pages/AdminDashboardPage';
 import { ProfilePage } from '@/modules/profile/pages/ProfilePage';
@@ -51,6 +52,7 @@ function App() {
         <Route path="/booking/:expertId" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
         <Route path="/booking-success" element={<ProtectedRoute><BookingSuccessPage /></ProtectedRoute>} />
         <Route path="/my-bookings" element={<ProtectedRoute><StudentBookingsPage /></ProtectedRoute>} />
+        <Route path="/consultation-history" element={<ProtectedRoute><ConsultationHistoryPage /></ProtectedRoute>} />
         <Route path="/expert-dashboard" element={<ProtectedRoute><ExpertDashboardPage /></ProtectedRoute>} />
         <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
         <Route path="/me" element={<Navigate to="/profile" replace />} />

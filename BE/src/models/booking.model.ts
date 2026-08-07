@@ -21,6 +21,7 @@ export interface BookingDocument extends mongoose.Document {
   postConsultationNotes?: string;
   reminderSentStudent?: boolean;
   reminderSentExpert?: boolean;
+  isReviewed?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -58,7 +59,8 @@ const bookingSchema = new Schema<BookingDocument>(
     },
     postConsultationNotes: { type: String, trim: true },
     reminderSentStudent: { type: Boolean, default: false },
-    reminderSentExpert: { type: Boolean, default: false }
+    reminderSentExpert: { type: Boolean, default: false },
+    isReviewed: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

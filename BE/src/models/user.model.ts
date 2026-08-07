@@ -36,6 +36,8 @@ export interface UserDocument extends mongoose.Document {
   consultingStyle?: string;
   availableSlots?: Timeslot[];
   consultingType?: ('online' | 'offline')[];
+  ratingAverage?: number;
+  reviewCount?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -76,7 +78,9 @@ const userSchema = new Schema<UserDocument>(
     achievements: [{ type: String, trim: true }],
     consultingStyle: { type: String, trim: true },
     availableSlots: [timeslotSchema],
-    consultingType: [{ type: String, enum: ['online', 'offline'] }]
+    consultingType: [{ type: String, enum: ['online', 'offline'] }],
+    ratingAverage: { type: Number, default: 5.0 },
+    reviewCount: { type: Number, default: 0 }
   },
   { timestamps: true }
 );

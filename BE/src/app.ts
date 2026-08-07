@@ -7,6 +7,8 @@ import { authRouter } from './routes/auth.route';
 import { profileRouter } from './routes/profile.route';
 import { bookingRouter } from './routes/booking.route';
 import { adminRouter } from './routes/admin.route';
+import { reviewRouter } from './routes/review.route';
+import { aiRouter } from './routes/ai.route';
 
 export const app = express();
 
@@ -29,5 +31,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/profile', profileRouter);
 app.use('/api/bookings', bookingRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/reviews', reviewRouter);
+app.use('/api/ai', aiRouter);
 app.use(errorMiddleware);
 

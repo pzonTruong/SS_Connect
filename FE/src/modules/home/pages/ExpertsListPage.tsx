@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Briefcase } from 'lucide-react';
+import { Search, Filter, Briefcase, Star } from 'lucide-react';
 import { http } from '@/shared/api/http';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
+import { AiRecommendBox } from '../components/AiRecommendBox';
 
 interface Expert {
   _id: string;
@@ -16,6 +17,8 @@ interface Expert {
   experienceYears?: number;
   specialties?: string[];
   consultingType?: string[];
+  ratingAverage?: number;
+  reviewCount?: number;
 }
 
 const SPECIALTY_OPTIONS = [
@@ -86,6 +89,11 @@ export const ExpertsListPage = () => {
         </div>
       </section>
 
+      {/* AI Recommendation Banner */}
+      <AiRecommendBox
+        expertsMap={experts.reduce((map, e) => ({ ...map, [e._id]: e }), {})}
+      />
+
       {/* Search & Filter tools */}
       <section className="grid gap-4 sm:flex sm:items-center sm:justify-between bg-card p-4 rounded-xl border shadow-sm">
         <div className="relative flex-1 max-w-md">
@@ -138,10 +146,18 @@ export const ExpertsListPage = () => {
                 </Avatar>
                 
                 <div className="space-y-1">
-                  <h3 className="font-bold text-base leading-tight hover:text-primary transition-colors">
+                  <h3 className="font-bold text-base leading-tight hover:text-primary transition-colors flex items-center justify-between">
                     <Link to={`/experts/${exp._id}`}>{exp.displayName}</Link>
                   </h3>
                   <p className="text-xs font-semibold text-primary/95 uppercase tracking-wider">{exp.title || 'SS Consultant'}</p>
+                  
+                  {/* Rating display */}
+                  <div className="flex items-center gap-1 text-[11px] font-bold text-amber-500">
+                    <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                    <span>{exp.ratingAverage ? exp.ratingAverage.toFixed(1) : '5.0'}</span>
+                    <span className="text-[10px] text-muted-foreground font-normal">({exp.reviewCount || 0} đánh giá)</span>
+                  </div>
+
                   {exp.experienceYears && (
                     <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-medium">
                       <Briefcase className="size-3 text-slate-400" />
@@ -182,7 +198,7 @@ export const ExpertsListPage = () => {
 
                 <div className="flex gap-2 pt-3 border-t mt-auto">
                   <Link to={`/experts/${exp._id}`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full text-xs font-semibold">
+                    <Button variant="outline" size="sm" className="w-full border-slate-300 dark:border-slate-600 bg-slate-100 text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700 font-bold text-xs py-2 rounded-lg transition-all duration-200 shadow-xs">
                       Xem chi tiết
                     </Button>
                   </Link>

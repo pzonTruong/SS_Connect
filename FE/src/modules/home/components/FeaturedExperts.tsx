@@ -139,7 +139,7 @@ export const FeaturedExperts = ({ experts, loading }: FeaturedExpertsProps) => {
                     <Link to={profilePath} className="flex-1">
                       <Button 
                         variant="outline" 
-                        className="w-full border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-850 font-semibold text-xs py-2 rounded-md transition-all duration-200"
+                        className="w-full border-slate-300 dark:border-slate-600 bg-slate-100 text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700 font-bold text-xs py-2 rounded-lg transition-all duration-200 shadow-xs"
                       >
                         Profile
                       </Button>
