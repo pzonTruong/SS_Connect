@@ -3,13 +3,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
-import { KeyRound, Loader2, Mail, Eye, EyeOff, ArrowLeft, CheckCircle2, Send, ShieldCheck } from 'lucide-react';
+import { KeyRound, Loader2, Mail, Eye, EyeOff, ArrowLeft, Send, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { authApi } from '../api/auth.api';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
-import { cn } from '@/shared/lib/utils';
 
 const requestSchema = z.object({
   email: z.string().min(1, 'Vui lòng nhập Email').email('Email không đúng định dạng'),
@@ -70,38 +69,7 @@ export const ForgotPasswordPage = () => {
   });
 
   return (
-    <div className="space-y-5">
-      {/* Visual Stepper Header */}
-      <div className="border-b bg-muted/30 -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 px-6 sm:px-8 py-3 mb-4 rounded-t-2xl">
-        <div className="flex items-center justify-between max-w-xs mx-auto">
-          <div className="flex items-center space-x-2">
-            <div className={cn(
-              "flex size-5 items-center justify-center rounded-full text-[11px] font-semibold transition-colors",
-              step === 'request' ? "bg-slate-950 text-white dark:bg-primary dark:text-primary-foreground" : "bg-primary/20 text-primary"
-            )}>
-              {step === 'reset' ? <CheckCircle2 className="size-3.5 text-primary" /> : '1'}
-            </div>
-            <span className={cn("text-xs font-medium", step === 'request' ? "text-foreground font-semibold" : "text-muted-foreground")}>
-              1. Yêu cầu mã
-            </span>
-          </div>
-
-          <div className="h-0.5 w-10 bg-border rounded-full" />
-
-          <div className="flex items-center space-x-2">
-            <div className={cn(
-              "flex size-5 items-center justify-center rounded-full text-[11px] font-semibold transition-colors",
-              step === 'reset' ? "bg-slate-950 text-white dark:bg-primary dark:text-primary-foreground" : "bg-muted text-muted-foreground"
-            )}>
-              2
-            </div>
-            <span className={cn("text-xs font-medium", step === 'reset' ? "text-foreground font-semibold" : "text-muted-foreground")}>
-              2. Đặt mật khẩu
-            </span>
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-4">
       <div className="text-center space-y-1 mb-4">
         <h2 className="text-2xl font-bold tracking-tight">
           {step === 'request' ? 'Quên mật khẩu' : 'Đặt lại mật khẩu'}

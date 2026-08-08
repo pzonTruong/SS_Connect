@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
-import { KeyRound, Loader2, Mail, Eye, EyeOff, GraduationCap, Award, ArrowLeft, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { KeyRound, Loader2, Mail, Eye, EyeOff, GraduationCap, Award, ArrowLeft, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { authApi } from '../api/auth.api';
 import { Button } from '@/shared/components/ui/button';
@@ -115,44 +115,13 @@ export const RegisterPage = () => {
   };
 
   return (
-    <div className="space-y-5">
-      {/* Visual Stepper Header */}
-      <div className="border-b bg-muted/30 -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 px-6 sm:px-8 py-3 mb-4 rounded-t-2xl">
-        <div className="flex items-center justify-between max-w-xs mx-auto">
-          <div className="flex items-center space-x-2">
-            <div className={cn(
-              "flex size-5 items-center justify-center rounded-full text-[11px] font-semibold transition-colors",
-              step === 'register' ? "bg-slate-950 text-white dark:bg-primary dark:text-primary-foreground" : "bg-primary/20 text-primary"
-            )}>
-              {step === 'verify' ? <CheckCircle2 className="size-3.5 text-primary" /> : '1'}
-            </div>
-            <span className={cn("text-xs font-medium", step === 'register' ? "text-foreground font-semibold" : "text-muted-foreground")}>
-              1. Thông tin
-            </span>
-          </div>
-
-          <div className="h-0.5 w-10 bg-border rounded-full" />
-
-          <div className="flex items-center space-x-2">
-            <div className={cn(
-              "flex size-5 items-center justify-center rounded-full text-[11px] font-semibold transition-colors",
-              step === 'verify' ? "bg-slate-950 text-white dark:bg-primary dark:text-primary-foreground" : "bg-muted text-muted-foreground"
-            )}>
-              2
-            </div>
-            <span className={cn("text-xs font-medium", step === 'verify' ? "text-foreground font-semibold" : "text-muted-foreground")}>
-              2. Xác thực OTP
-            </span>
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-4">
       {step === 'verify' ? (
         <div className="space-y-5">
           <div className="text-center space-y-1">
             <h2 className="text-2xl font-bold tracking-tight">Xác nhận OTP</h2>
             <p className="text-xs text-muted-foreground">Mã xác nhận 6 chữ số đã được gửi tới địa chỉ</p>
-            <div className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+            <div className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
               <Mail className="size-3.5 shrink-0" />
               <span className="truncate max-w-[200px]">{registeredValues?.email}</span>
               <button
@@ -206,44 +175,44 @@ export const RegisterPage = () => {
                 onClick={() => { setStep('register'); setOtp(''); }}
                 className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition pt-1"
               >
-                <ArrowLeft className="size-3" /> Quay lại bước 1
+                <ArrowLeft className="size-3" /> Quay lại nhập thông tin
               </button>
             </div>
           </form>
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="text-center space-y-1 mb-4">
+          <div className="text-center space-y-1 mb-3">
             <h2 className="text-2xl font-bold tracking-tight">Tạo tài khoản mới</h2>
             <p className="text-xs text-muted-foreground">Bắt đầu hành trình định hướng sự nghiệp của bạn.</p>
           </div>
 
-          <form className="space-y-4" onSubmit={onRegisterSubmit}>
+          <form className="space-y-3.5" onSubmit={onRegisterSubmit}>
             {/* Role Selection Cards */}
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Bạn đăng ký làm:
               </Label>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-2.5 pt-0.5">
                 <button
                   type="button"
                   onClick={() => setValue('role', 'user')}
                   className={cn(
-                    "flex flex-col items-start p-3 rounded-xl border text-left transition-all duration-200 relative overflow-hidden",
+                    "flex items-center gap-2.5 p-2.5 rounded-xl border text-left transition-all duration-200",
                     selectedRole === 'user'
-                      ? "border-slate-950 bg-slate-950/5 ring-1 ring-slate-950 dark:border-primary dark:bg-primary/10 dark:ring-primary shadow-sm"
+                      ? "border-slate-950 bg-slate-950/5 ring-1 ring-slate-950 dark:border-primary dark:bg-primary/10 dark:ring-primary shadow-xs"
                       : "border-border hover:border-slate-400 hover:bg-accent/40"
                   )}
                 >
                   <div className={cn(
-                    "p-1.5 rounded-md mb-1.5 transition-colors",
+                    "p-1.5 rounded-lg shrink-0 transition-colors",
                     selectedRole === 'user' ? "bg-slate-950 text-white dark:bg-primary dark:text-primary-foreground" : "bg-muted text-muted-foreground"
                   )}>
                     <GraduationCap className="size-4" />
                   </div>
-                  <div className="font-semibold text-xs">Học viên</div>
-                  <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">
-                    Tư vấn & định hướng 1-1
+                  <div>
+                    <div className="font-semibold text-xs leading-tight">Học viên</div>
+                    <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">Tư vấn 1-1</div>
                   </div>
                 </button>
 
@@ -251,28 +220,28 @@ export const RegisterPage = () => {
                   type="button"
                   onClick={() => setValue('role', 'expert')}
                   className={cn(
-                    "flex flex-col items-start p-3 rounded-xl border text-left transition-all duration-200 relative overflow-hidden",
+                    "flex items-center gap-2.5 p-2.5 rounded-xl border text-left transition-all duration-200",
                     selectedRole === 'expert'
-                      ? "border-slate-950 bg-slate-950/5 ring-1 ring-slate-950 dark:border-primary dark:bg-primary/10 dark:ring-primary shadow-sm"
+                      ? "border-slate-950 bg-slate-950/5 ring-1 ring-slate-950 dark:border-primary dark:bg-primary/10 dark:ring-primary shadow-xs"
                       : "border-border hover:border-slate-400 hover:bg-accent/40"
                   )}
                 >
                   <div className={cn(
-                    "p-1.5 rounded-md mb-1.5 transition-colors",
+                    "p-1.5 rounded-lg shrink-0 transition-colors",
                     selectedRole === 'expert' ? "bg-slate-950 text-white dark:bg-primary dark:text-primary-foreground" : "bg-muted text-muted-foreground"
                   )}>
                     <Award className="size-4" />
                   </div>
-                  <div className="font-semibold text-xs">Chuyên gia (SS)</div>
-                  <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">
-                    Cố vấn & sửa CV phỏng vấn
+                  <div>
+                    <div className="font-semibold text-xs leading-tight">Chuyên gia</div>
+                    <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">Cố vấn SS</div>
                   </div>
                 </button>
               </div>
             </div>
 
             {/* Email */}
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <Label htmlFor="email" className="text-xs font-medium text-muted-foreground">Email</Label>
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -282,7 +251,7 @@ export const RegisterPage = () => {
             </div>
 
             {/* Password */}
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <Label htmlFor="password" className="text-xs font-medium text-muted-foreground">Mật khẩu</Label>
               <div className="relative">
                 <KeyRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -305,7 +274,7 @@ export const RegisterPage = () => {
             </div>
 
             {/* Confirm Password */}
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <Label htmlFor="confirmPassword" className="text-xs font-medium text-muted-foreground">Xác nhận mật khẩu</Label>
               <div className="relative">
                 <KeyRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -327,7 +296,7 @@ export const RegisterPage = () => {
               {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>}
             </div>
 
-            <Button className="w-full font-semibold shadow-md mt-6 h-11 text-sm bg-slate-950 text-white hover:bg-slate-900 dark:bg-primary dark:hover:bg-primary/90" type="submit" disabled={loading}>
+            <Button className="w-full font-semibold shadow-md mt-5 h-11 text-sm bg-slate-950 text-white hover:bg-slate-900 dark:bg-primary dark:hover:bg-primary/90" type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
               Tiếp tục & Gửi mã OTP
             </Button>
