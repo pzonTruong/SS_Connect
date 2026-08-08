@@ -92,13 +92,17 @@ export const checkAndSendMeetingReminders = async () => {
   }
 };
 
+import { checkAndCancelExpiredBookings } from '../controllers/booking.controller';
+
 export const startReminderScheduler = (intervalMinutes = 1) => {
   console.log(`⏰ Reminder scheduler started (checking every ${intervalMinutes} minute(s))...`);
   // Run immediately on start
   checkAndSendMeetingReminders().catch(console.error);
+  checkAndCancelExpiredBookings().catch(console.error);
 
   // Set interval loop
   setInterval(() => {
     checkAndSendMeetingReminders().catch(console.error);
+    checkAndCancelExpiredBookings().catch(console.error);
   }, intervalMinutes * 60 * 1000);
 };

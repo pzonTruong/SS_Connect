@@ -76,14 +76,18 @@ export const StudentBookingsPage = () => {
     fetchBookings();
   }, []);
 
-  const handleCancelBooking = async (bookingId: string) => {
-    const confirmCancel = window.confirm(
-      'Bạn có chắc chắn muốn hủy lịch hẹn tư vấn này?\n\nLưu ý: Học viên chỉ được đặt lại tối đa 1 lần sau khi hủy lịch.'
-    );
+  const handleCancelBooking = async (booking: Booking) => {
+    const isRescheduleNeeded = booking.status === 'reschedule_needed';
+    const confirmMessage = isRescheduleNeeded
+      ? 'Bạn có chắc chắn muốn từ chối yêu cầu đổi lịch và hủy buổi tư vấn này?'
+      : 'Bạn có chắc chắn muốn hủy lịch hẹn tư vấn này?\n\nLưu ý: Học viên chỉ được đặt lại tối đa 1 lần sau khi hủy lịch.';
+
+    const confirmCancel = window.confirm(confirmMessage);
     if (!confirmCancel) return;
 
     try {
-      await http.put(`/bookings/${bookingId}/status`, { status: 'cancelled_student' });
+      const statusToSet = isRescheduleNeeded ? 'cancelled_expert' : 'cancelled_student';
+      await http.put(`/bookings/${booking._id}/status`, { status: statusToSet });
       toast.success('Hủy lịch hẹn thành công');
       fetchBookings();
     } catch (err: any) {
@@ -122,9 +126,9 @@ export const StudentBookingsPage = () => {
     }
   };
 
-  // Get available (not booked) slots for a given date
+  // Get available (not booked) slots for a given date (>= 3 days in advance)
   const availableDates = [...new Set(
-    expertSlots.filter(s => !s.booked).map(s => s.date)
+    expertSlots.filter(s => getDaysFromToday(s.date) >= 3 && !s.booked).map(s => s.date)
   )].sort();
   const availableTimesForDate = expertSlots
     .filter(s => s.date === newDate && !s.booked)
@@ -268,14 +272,18 @@ export const StudentBookingsPage = () => {
                     <div className="space-y-1">
                       <p className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Tham gia cuộc họp:</p>
                       {booking.mode === 'online' && booking.status !== 'cancelled_student' && booking.status !== 'cancelled_expert' ? (
-                        <a
-                          href={booking.meetingLink || 'https://meet.google.com/abc-defg-hij'}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-bold text-blue-600 dark:text-blue-400 hover:underline inline-block truncate max-w-[200px]"
-                        >
-                          {booking.meetingLink || 'https://meet.google.com/abc-defg-hij'}
-                        </a>
+                        booking.status === 'confirmed' && booking.meetingLink ? (
+                          <a
+                            href={booking.meetingLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-bold text-blue-600 dark:text-blue-400 hover:underline inline-block truncate max-w-[200px]"
+                          >
+                            {booking.meetingLink}
+                          </a>
+                        ) : (
+                          <span className="text-amber-600 dark:text-amber-400 font-medium italic">Sẽ khởi tạo sau khi duyệt</span>
+                        )
                       ) : (
                         <span className="text-slate-400 font-medium">Gặp tại văn phòng MindX</span>
                       )}
@@ -321,7 +329,7 @@ export const StudentBookingsPage = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleCancelBooking(booking._id)}
+                              onClick={() => handleCancelBooking(booking)}
                               className="text-xs text-destructive border-destructive/30 hover:bg-destructive/5 font-semibold"
                             >
                               <XCircle className="size-3.5 mr-1" /> Hủy lịch hẹn
@@ -418,7 +426,7 @@ export const StudentBookingsPage = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleCancelBooking(booking._id)}
+                                onClick={() => handleCancelBooking(booking)}
                                 className="text-xs text-destructive border-destructive/30 hover:bg-destructive/5 font-semibold"
                               >
                                 <XCircle className="size-3.5 mr-1" /> Hủy lịch hẹn
@@ -466,7 +474,7 @@ export const StudentBookingsPage = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleCancelBooking(booking._id)}
+                          onClick={() => handleCancelBooking(booking)}
                           className="text-xs text-destructive border-destructive/30 hover:bg-destructive/5 font-semibold"
                         >
                           <XCircle className="size-3.5 mr-1" /> Hủy lịch hẹn

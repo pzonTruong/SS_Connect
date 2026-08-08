@@ -4,6 +4,7 @@ import { BookingModel } from '../models/booking.model';
 import { UserModel } from '../models/user.model';
 import {
   sendBookingConfirmationToStudent,
+  sendBookingConfirmationToExpert,
   sendBookingNotificationToExpert,
   sendBookingCancellationToStudent,
   sendBookingCompletionToStudent,
@@ -12,9 +13,51 @@ import {
 } from '../services/email.service';
 import { getVietnamDateString, getDaysDifference } from '../utils/date';
 
+// Automatically cancels bookings that have been pending for > 24 hours without expert confirmation
+export const checkAndCancelExpiredBookings = async () => {
+  try {
+    const cutOff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const expiredBookings = await BookingModel.find({
+      status: 'pending',
+      createdAt: { $lt: cutOff }
+    });
+
+    for (const booking of expiredBookings) {
+      booking.status = 'cancelled_expert';
+      await booking.save();
+
+      const expert = await UserModel.findById(booking.expertId);
+      const expertName = expert ? (expert.displayName || expert.email.split('@')[0]) : 'Chuyên gia';
+      sendBookingCancellationToStudent(booking.studentEmail, booking, expertName).catch(console.error);
+
+      if (expert) {
+        const hasConfirmed = await BookingModel.exists({
+          expertId: booking.expertId,
+          date: booking.date,
+          time: booking.time,
+          status: 'confirmed'
+        });
+        if (!hasConfirmed) {
+          const slotIdx = expert.availableSlots?.findIndex(
+            (s) => s.date === booking.date && s.time === booking.time
+          );
+          if (slotIdx !== undefined && slotIdx !== -1 && expert.availableSlots![slotIdx].booked) {
+            expert.availableSlots![slotIdx].booked = false;
+            await expert.save();
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error in checkAndCancelExpiredBookings:', error);
+  }
+};
+
 // POST /api/bookings - Book a session (student only)
 export const createBooking = async (req: Request, res: Response) => {
   try {
+    await checkAndCancelExpiredBookings();
+
     const studentId = req.user?.sub;
     const {
       studentName,
@@ -78,23 +121,38 @@ export const createBooking = async (req: Request, res: Response) => {
     }
 
     const slot = expert.availableSlots![slotIndex];
-    if (slot.booked) {
-      return res.status(400).json({ message: 'Khung giờ này đã được đặt trước đó' });
+
+    // Check if slot has already been confirmed by expert for another student
+    const confirmedBooking = await BookingModel.findOne({
+      expertId,
+      date,
+      time,
+      status: 'confirmed'
+    });
+
+    if (slot.booked || confirmedBooking) {
+      return res.status(400).json({ message: 'Khung giờ này đã được chuyên gia xác nhận cho một học viên khác' });
     }
 
-    // Lock the slot
-    expert.availableSlots![slotIndex].booked = true;
-    await expert.save();
+    // Check if this student already has a pending or confirmed booking for this exact slot
+    const existingStudentBooking = await BookingModel.findOne({
+      studentId,
+      expertId,
+      date,
+      time,
+      status: { $in: ['pending', 'confirmed'] }
+    });
+
+    if (existingStudentBooking) {
+      return res.status(400).json({ message: 'Bạn đã đăng ký khung giờ này với chuyên gia rồi' });
+    }
+
+    // Note: Multiple students can place pending bookings for the same slot until confirmed.
+    // We do NOT set slot.booked = true when status is pending.
+    // We do NOT generate meetingLink when status is pending (generated upon expert confirmation).
 
     // Create booking
-    let meetingLink = undefined;
-    if (mode === 'online') {
-      // Generate a mock Google Meet link
-      const p1 = Math.random().toString(36).substring(2, 5);
-      const p2 = Math.random().toString(36).substring(2, 6);
-      const p3 = Math.random().toString(36).substring(2, 5);
-      meetingLink = `https://meet.google.com/${p1}-${p2}-${p3}`;
-    }
+    const meetingLink = undefined;
 
     const booking = new BookingModel({
       studentId,
@@ -118,7 +176,7 @@ export const createBooking = async (req: Request, res: Response) => {
 
     await booking.save();
 
-    // Send emails asynchronously (Student gets confirmation only after Expert approves/confirms)
+    // Send email notification to expert
     const expertName = expert.displayName || expert.email.split('@')[0];
     sendBookingNotificationToExpert(expert.email, booking, studentName).catch(console.error);
 
@@ -131,6 +189,7 @@ export const createBooking = async (req: Request, res: Response) => {
 // GET /api/bookings/my-bookings - Get student bookings
 export const getMyBookings = async (req: Request, res: Response) => {
   try {
+    await checkAndCancelExpiredBookings();
     const studentId = req.user?.sub;
     const bookings = await BookingModel.find({ studentId })
       .populate('expertId', 'displayName email avatarUrl title')
@@ -145,6 +204,7 @@ export const getMyBookings = async (req: Request, res: Response) => {
 // GET /api/bookings/expert-bookings - Get expert bookings
 export const getExpertBookings = async (req: Request, res: Response) => {
   try {
+    await checkAndCancelExpiredBookings();
     const expertId = req.user?.sub;
     const bookings = await BookingModel.find({ expertId })
       .populate('studentId', 'displayName email avatarUrl phone')
@@ -159,6 +219,7 @@ export const getExpertBookings = async (req: Request, res: Response) => {
 // PUT /api/bookings/:id/status - Update booking status
 export const updateBookingStatus = async (req: Request, res: Response) => {
   try {
+    await checkAndCancelExpiredBookings();
     const { id } = req.params;
     const { status, postConsultationNotes } = req.body;
     const userId = req.user?.sub;
@@ -182,11 +243,17 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
       return res.status(403).json({ message: 'Unauthorized status modification' });
     }
 
-    // If cancelled, free up the timeslot on the expert
-    const isCancelling = ['cancelled_student', 'cancelled_expert'].includes(status);
+    // If booking was in reschedule_needed, any cancellation is treated as expert/SS cancellation (cancelled_expert)
+    const expertRequestedReschedule = booking.status === 'reschedule_needed';
+    let targetStatus = status;
+    if (expertRequestedReschedule && ['cancelled_student', 'cancelled_expert'].includes(status)) {
+      targetStatus = 'cancelled_expert';
+    }
+
+    const isCancelling = ['cancelled_student', 'cancelled_expert'].includes(targetStatus);
     const wasActive = ['pending', 'confirmed'].includes(booking.status);
 
-    if (status === 'cancelled_student' && (wasActive || booking.status === 'reschedule_needed')) {
+    if (targetStatus === 'cancelled_student' && (wasActive || expertRequestedReschedule)) {
       // Check 1-day constraint (skip time check if expert already requested reschedule)
       if (wasActive) {
         const todayStr = getVietnamDateString(new Date());
@@ -200,7 +267,6 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
 
       // Only count as a warning if the student cancelled on their own initiative
       // (i.e. NOT in response to an expert-requested reschedule)
-      const expertRequestedReschedule = booking.status === 'reschedule_needed';
       if (!expertRequestedReschedule) {
         const student = await UserModel.findById(booking.studentId);
         if (student) {
@@ -213,7 +279,7 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
       }
     }
 
-    if (status === 'completed' && wasActive) {
+    if (targetStatus === 'completed' && wasActive) {
       const student = await UserModel.findById(booking.studentId);
       if (student) {
         student.cancellationWarnings = 0;
@@ -222,15 +288,25 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
       }
     }
 
-    if (isCancelling && (wasActive || booking.status === 'reschedule_needed')) {
-      const expert = await UserModel.findById(booking.expertId);
-      if (expert) {
-        const slotIndex = expert.availableSlots?.findIndex(
-          (slot) => slot.date === booking.date && slot.time === booking.time
-        );
-        if (slotIndex !== undefined && slotIndex !== -1) {
-          expert.availableSlots![slotIndex].booked = false;
-          await expert.save();
+    if (isCancelling && (wasActive || expertRequestedReschedule)) {
+      const remainingConfirmed = await BookingModel.exists({
+        _id: { $ne: booking._id },
+        expertId: booking.expertId,
+        date: booking.date,
+        time: booking.time,
+        status: 'confirmed'
+      });
+
+      if (!remainingConfirmed) {
+        const expert = await UserModel.findById(booking.expertId);
+        if (expert) {
+          const slotIndex = expert.availableSlots?.findIndex(
+            (slot) => slot.date === booking.date && slot.time === booking.time
+          );
+          if (slotIndex !== undefined && slotIndex !== -1) {
+            expert.availableSlots![slotIndex].booked = false;
+            await expert.save();
+          }
         }
       }
     }
@@ -238,8 +314,8 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
     const oldStatus = booking.status;
 
     // Apply updates
-    if (status) {
-      booking.status = status;
+    if (targetStatus) {
+      booking.status = targetStatus;
     }
     if (postConsultationNotes !== undefined) {
       booking.postConsultationNotes = postConsultationNotes;
@@ -247,15 +323,56 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
 
     await booking.save();
 
-    // Send confirmation email to student only when transitioning from pending to confirmed
-    if (status === 'confirmed' && oldStatus === 'pending') {
+    // Send confirmation email to student when transitioning to confirmed
+    // AND automatically cancel other pending bookings for the same slot, sending cancellation email to each competitor
+    if (status === 'confirmed' && oldStatus !== 'confirmed') {
       const expert = await UserModel.findById(booking.expertId);
       const expertName = expert ? (expert.displayName || expert.email.split('@')[0]) : 'Chuyên gia';
+
+      // Generate Google Meet link for online bookings if not present
+      if (booking.mode === 'online' && !booking.meetingLink) {
+        const p1 = Math.random().toString(36).substring(2, 5);
+        const p2 = Math.random().toString(36).substring(2, 6);
+        const p3 = Math.random().toString(36).substring(2, 5);
+        booking.meetingLink = `https://meet.google.com/${p1}-${p2}-${p3}`;
+        await booking.save();
+      }
+
+      // 1. Lock slot on expert
+      if (expert) {
+        const slotIndex = expert.availableSlots?.findIndex(
+          (slot) => slot.date === booking.date && slot.time === booking.time
+        );
+        if (slotIndex !== undefined && slotIndex !== -1) {
+          expert.availableSlots![slotIndex].booked = true;
+          await expert.save();
+        }
+      }
+
+      // 2. Auto-cancel all competitor pending bookings for the same slot and send cancellation emails
+      const competitors = await BookingModel.find({
+        _id: { $ne: booking._id },
+        expertId: booking.expertId,
+        date: booking.date,
+        time: booking.time,
+        status: 'pending'
+      });
+
+      for (const competitor of competitors) {
+        competitor.status = 'cancelled_expert';
+        await competitor.save();
+        sendBookingCancellationToStudent(competitor.studentEmail, competitor, expertName).catch(console.error);
+      }
+
+      // 3. Send confirmation email to the accepted student and expert
       sendBookingConfirmationToStudent(booking.studentEmail, booking, expertName).catch(console.error);
+      if (expert) {
+        sendBookingConfirmationToExpert(expert.email, booking, booking.studentName).catch(console.error);
+      }
     }
 
-    // Send cancellation/rejection email to student when expert cancels/declines
-    if (status === 'cancelled_expert' && oldStatus !== 'cancelled_expert') {
+    // Send cancellation/rejection email to student when expert cancels/declines directly
+    if (status === 'cancelled_expert' && oldStatus !== 'cancelled_expert' && oldStatus !== 'pending') {
       const expert = await UserModel.findById(booking.expertId);
       const expertName = expert ? (expert.displayName || expert.email.split('@')[0]) : 'Chuyên gia';
       sendBookingCancellationToStudent(booking.studentEmail, booking, expertName).catch(console.error);
@@ -561,13 +678,7 @@ export const rescheduleBooking = async (req: Request, res: Response) => {
     booking.time = time;
     if (mode) booking.mode = mode;
     booking.status = 'pending'; // Reset to pending for expert's approval
-
-    if (mode === 'online' && !booking.meetingLink) {
-      const p1 = Math.random().toString(36).substring(2, 5);
-      const p2 = Math.random().toString(36).substring(2, 6);
-      const p3 = Math.random().toString(36).substring(2, 5);
-      booking.meetingLink = `https://meet.google.com/${p1}-${p2}-${p3}`;
-    }
+    booking.meetingLink = undefined; // Will be generated when expert confirms
 
     await booking.save();
 

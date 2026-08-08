@@ -70,14 +70,26 @@ export const ExpertProfilePage = () => {
       .catch(() => setReviews([]));
   }, [id]);
 
-  // Group slots by date
+  const getDaysFromToday = (dateStr: string) => {
+    if (!dateStr) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const targetDate = new Date(dateStr);
+    targetDate.setHours(0, 0, 0, 0);
+    const diffTime = targetDate.getTime() - today.getTime();
+    return Math.round(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  // Group slots by date (Only show slots >= 3 days in advance)
   const slotsGroupedByDate: { [key: string]: Timeslot[] } = {};
   if (expert && expert.availableSlots) {
     expert.availableSlots.forEach((slot) => {
-      if (!slotsGroupedByDate[slot.date]) {
-        slotsGroupedByDate[slot.date] = [];
+      if (getDaysFromToday(slot.date) >= 3) {
+        if (!slotsGroupedByDate[slot.date]) {
+          slotsGroupedByDate[slot.date] = [];
+        }
+        slotsGroupedByDate[slot.date].push(slot);
       }
-      slotsGroupedByDate[slot.date].push(slot);
     });
   }
 
@@ -103,16 +115,6 @@ export const ExpertProfilePage = () => {
       </div>
     );
   }
-
-  const getDaysFromToday = (dateStr: string) => {
-    if (!dateStr) return 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const targetDate = new Date(dateStr);
-    targetDate.setHours(0, 0, 0, 0);
-    const diffTime = targetDate.getTime() - today.getTime();
-    return Math.round(diffTime / (1000 * 60 * 60 * 24));
-  };
 
   const handleReschedule = async (slot: Timeslot) => {
     setRescheduling(true);

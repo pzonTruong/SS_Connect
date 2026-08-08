@@ -178,14 +178,16 @@ export const BookingPage = () => {
     );
   }
 
-  // Group slots by date
+  // Group slots by date (Only show slots >= 3 days in advance)
   const slotsGroupedByDate: { [key: string]: any[] } = {};
   if (expert && expert.availableSlots) {
     expert.availableSlots.forEach((slot: any) => {
-      if (!slotsGroupedByDate[slot.date]) {
-        slotsGroupedByDate[slot.date] = [];
+      if (getDaysFromToday(slot.date) >= 3) {
+        if (!slotsGroupedByDate[slot.date]) {
+          slotsGroupedByDate[slot.date] = [];
+        }
+        slotsGroupedByDate[slot.date].push(slot);
       }
-      slotsGroupedByDate[slot.date].push(slot);
     });
   }
   const availableDates = Object.keys(slotsGroupedByDate).sort();

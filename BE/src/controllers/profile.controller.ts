@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { UserModel } from '../models/user.model';
 import { deleteImage, uploadImage } from '../services/cloudinary.service';
 import { UpdateProfileInput } from '../validators/profile.validator';
+import { checkAndCancelExpiredBookings } from './booking.controller';
 
 // Fields excluded from all profile responses (role is intentionally NOT excluded — it is public)
 const EXCLUDED_FIELDS = '-password -otpCode -otpExpiresAt -resetToken -resetTokenExpiresAt';
@@ -69,6 +70,7 @@ export const getExperts = async (req: Request, res: Response) => {
 // GET /api/profile/experts/:id - Get single expert profile (public)
 export const getExpertById = async (req: Request, res: Response) => {
   try {
+    await checkAndCancelExpiredBookings();
     const { id } = req.params;
     const expert = await UserModel.findOne({ _id: id, role: 'expert' })
       .select('-password -otpCode -otpExpiresAt -resetToken -resetTokenExpiresAt');

@@ -67,8 +67,8 @@ export const sendBookingConfirmationToStudent = async (
   expertName: string
 ) => {
   const expertProfileUrl = `${env.clientUrl}/experts/${booking.expertId}`;
-  const meetingHtml = booking.mode === 'online' 
-    ? `<p style="margin:0 0 12px;font-size:14px;color:#3f3f46;"><b>Link meeting online:</b> <a href="${booking.meetingLink || 'https://meet.google.com/abc-defg-hij'}" style="color:#2563eb;text-decoration:underline;">Tham gia cuộc họp</a></p>`
+  const meetingHtml = booking.mode === 'online' && booking.meetingLink
+    ? `<p style="margin:0 0 12px;font-size:14px;color:#3f3f46;"><b>Link meeting online (Google Meet):</b> <a href="${booking.meetingLink}" style="color:#2563eb;text-decoration:underline;font-weight:bold;">${booking.meetingLink}</a></p>`
     : `<p style="margin:0 0 12px;font-size:14px;color:#3f3f46;"><b>Địa điểm offline:</b> Văn phòng Student Success Hub tại Cơ sở MindX gần nhất</p>`;
 
   await sendEmail(
@@ -86,7 +86,7 @@ export const sendBookingConfirmationToStudent = async (
               Chào bạn <b>${booking.studentName}</b>,
             </p>
             <p style="margin:0 0 16px;font-size:14px;color:#3f3f46;line-height:1.6;">
-              Yêu cầu đặt lịch của bạn đã được ghi nhận thành công trong hệ thống. Dưới đây là thông tin chi tiết:
+              Yêu cầu đặt lịch của bạn đã được chuyên gia xác nhận thành công. Dưới đây là thông tin chi tiết:
             </p>
             <div style="background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:16px;margin-bottom:20px;">
               <p style="margin:0 0 8px;font-size:14px;color:#3f3f46;"><b>Chuyên gia tư vấn:</b> <a href="${expertProfileUrl}" style="color:#0a66c2;text-decoration:underline;font-weight:bold;">${expertName}</a></p>
@@ -105,6 +105,52 @@ export const sendBookingConfirmationToStudent = async (
               </ul>
             </div>
             <p style="margin:0;font-size:12px;color:#9ca3af;">Nếu có thắc mắc hoặc cần thay đổi lịch, vui lòng liên hệ bộ phận Student Success.</p>
+          </div>
+        </div>
+      </div>
+    `
+  );
+};
+
+export const sendBookingConfirmationToExpert = async (
+  to: string,
+  booking: any,
+  studentName: string
+) => {
+  const meetingHtml = booking.mode === 'online' && booking.meetingLink
+    ? `<p style="margin:0 0 12px;font-size:14px;color:#14532d;"><b>Link cuộc họp Google Meet:</b> <a href="${booking.meetingLink}" style="color:#2563eb;text-decoration:underline;font-weight:bold;">${booking.meetingLink}</a></p>`
+    : `<p style="margin:0 0 12px;font-size:14px;color:#14532d;"><b>Địa điểm offline:</b> Văn phòng Student Success Hub tại Cơ sở MindX</p>`;
+
+  await sendEmail(
+    to,
+    `[SS Connect] Đã xác nhận thành công lịch tư vấn với học viên ${studentName}`,
+    `
+      <div style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,sans-serif;">
+        <div style="max-width:560px;margin:0 auto;padding:24px 16px;">
+          <div style="background:#ffffff;border:1px solid #e4e4e7;border-radius:14px;padding:24px;">
+            <p style="margin:0 0 8px;font-size:12px;color:#71717a;letter-spacing:0.08em;text-transform:uppercase;">
+              Student Success Connect
+            </p>
+            <h2 style="margin:0 0 14px;font-size:20px;color:#10b981;border-bottom:1px solid #e5e7eb;padding-bottom:10px;">Xác nhận lịch tư vấn thành công</h2>
+            <p style="margin:0 0 12px;font-size:14px;color:#3f3f46;line-height:1.6;">
+              Kính gửi chuyên gia,
+            </p>
+            <p style="margin:0 0 16px;font-size:14px;color:#3f3f46;line-height:1.6;">
+              Anh/chị đã xác nhận thành công lịch hẹn tư vấn với học viên <b>${studentName}</b>. Dưới đây là thông tin chi tiết buổi hẹn:
+            </p>
+            <div style="background:#f0fdf4;border:1px solid #dcfce7;border-radius:8px;padding:16px;margin-bottom:20px;">
+              <p style="margin:0 0 8px;font-size:14px;color:#14532d;"><b>Học viên:</b> ${studentName}</p>
+              <p style="margin:0 0 8px;font-size:14px;color:#14532d;"><b>Email học viên:</b> ${booking.studentEmail}</p>
+              <p style="margin:0 0 8px;font-size:14px;color:#14532d;"><b>Số điện thoại:</b> ${booking.studentPhone}</p>
+              <p style="margin:0 0 8px;font-size:14px;color:#14532d;"><b>Chủ đề:</b> ${booking.bookingType}</p>
+              <p style="margin:0 0 8px;font-size:14px;color:#14532d;"><b>Thời gian:</b> ${booking.time} ngày ${booking.date}</p>
+              <p style="margin:0 0 8px;font-size:14px;color:#14532d;"><b>Hình thức:</b> ${booking.mode === 'online' ? 'Online' : 'Offline'}</p>
+              ${meetingHtml}
+            </div>
+            
+            <div style="text-align:center;margin-top:20px;margin-bottom:10px;">
+              <a href="${env.clientUrl}/expert-dashboard" style="background:#10b981;color:#ffffff;padding:12px 24px;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;display:inline-block;">Vào trang quản lý lịch hẹn</a>
+            </div>
           </div>
         </div>
       </div>

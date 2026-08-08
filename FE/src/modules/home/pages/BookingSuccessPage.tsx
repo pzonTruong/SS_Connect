@@ -12,12 +12,6 @@ export const BookingSuccessPage = () => {
   const mode = searchParams.get('mode') || 'online';
   const expertId = searchParams.get('expertId') || '';
 
-  // Generate a mock meet link on the fly for display
-  const p1 = Math.random().toString(36).substring(2, 5);
-  const p2 = Math.random().toString(36).substring(2, 6);
-  const p3 = Math.random().toString(36).substring(2, 5);
-  const meetLink = `https://meet.google.com/${p1}-${p2}-${p3}`;
-
   return (
     <div className="max-w-xl mx-auto text-center py-10 space-y-8 pb-16">
       {/* Icon + success header */}
@@ -73,14 +67,9 @@ export const BookingSuccessPage = () => {
         {mode === 'online' && (
           <div className="py-4 space-y-2">
             <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Đường dẫn tham gia (Google Meet):</p>
-            <a 
-              href={meetLink} 
-              target="_blank" 
-              rel="noreferrer" 
-              className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline break-all block"
-            >
-              {meetLink}
-            </a>
+            <p className="text-xs text-amber-700 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg border border-amber-200 dark:border-amber-900/50 leading-relaxed">
+              ⚡ Đường dẫn cuộc họp Google Meet sẽ được khởi tạo và gửi qua email cho bạn ngay sau khi chuyên gia chấp nhận xác nhận lịch hẹn.
+            </p>
           </div>
         )}
 

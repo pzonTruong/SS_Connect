@@ -274,7 +274,7 @@ export const ExpertDashboardPage = () => {
 
                   <CardContent className="p-5 space-y-4 text-xs">
                     {/* Time slot metadata */}
-                    <div className="grid gap-4 sm:grid-cols-3 leading-relaxed border-b pb-4">
+                    <div className="grid gap-4 sm:grid-cols-4 leading-relaxed border-b pb-4">
                       <div className="space-y-1">
                         <span className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Thời gian hẹn:</span>
                         <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
@@ -305,6 +305,26 @@ export const ExpertDashboardPage = () => {
                           </a>
                         ) : (
                           <span className="text-slate-400 italic">Không gửi kèm CV</span>
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
+                        <span className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Tham gia cuộc họp:</span>
+                        {booking.mode === 'online' && booking.status !== 'cancelled_student' && booking.status !== 'cancelled_expert' ? (
+                          booking.status === 'confirmed' && booking.meetingLink ? (
+                            <a
+                              href={booking.meetingLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-bold text-blue-600 dark:text-blue-400 hover:underline block truncate max-w-[180px]"
+                            >
+                              {booking.meetingLink}
+                            </a>
+                          ) : (
+                            <span className="text-amber-600 dark:text-amber-400 font-medium italic">Khởi tạo sau khi xác nhận</span>
+                          )
+                        ) : (
+                          <span className="text-slate-400 font-medium">Gặp tại văn phòng MindX</span>
                         )}
                       </div>
                     </div>
