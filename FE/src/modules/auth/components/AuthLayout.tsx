@@ -1,86 +1,92 @@
-import { Compass, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Compass } from 'lucide-react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { cn } from '@/shared/lib/utils';
 import { ThemeToggle } from '@/shared/components/ui/theme-toggle';
-
-const navItems = [
-  { to: '/login', label: 'Đăng nhập' },
-  { to: '/register', label: 'Đăng ký' },
-  { to: '/forgot-password', label: 'Quên mật khẩu' }
-];
+import { cn } from '@/shared/lib/utils';
 
 export const AuthLayout = () => {
   const location = useLocation();
+  const isLoginPage = location.pathname === '/login';
+  const isRegisterPage = location.pathname === '/register';
+  const showTabs = isLoginPage || isRegisterPage;
 
   return (
-    <main className="relative mx-auto flex min-h-screen w-full max-w-6xl items-center justify-center p-4 md:p-8">
-      <div className="absolute right-4 top-4">
+    <main className="relative flex min-h-screen w-full bg-background items-stretch overflow-hidden">
+      {/* Dark/Light mode toggle */}
+      <div className="absolute right-4 top-4 z-50">
         <ThemeToggle />
       </div>
-      <section className="grid w-full gap-6 md:grid-cols-12 items-stretch">
-        {/* Left marketing banner */}
-        <div className="hidden md:flex md:col-span-6 rounded-2xl bg-gradient-to-br from-indigo-950 via-slate-900 to-blue-950 border border-slate-800 text-white p-10 flex-col justify-between relative overflow-hidden shadow-xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.15),transparent)] pointer-events-none" />
-          
-          <div className="relative z-10">
-            <div className="mb-8 inline-flex size-12 items-center justify-center rounded-xl bg-white/10 text-indigo-300 backdrop-blur-md border border-white/10 shadow-inner">
-              <Compass className="size-6 animate-pulse" />
-            </div>
-            
-            <h1 className="text-3xl font-extrabold tracking-tight leading-tight">
-              Mở Khóa Tiềm Năng<br />
-              <span className="bg-gradient-to-r from-indigo-300 via-purple-300 to-blue-300 bg-clip-text text-transparent">
-                Nghề Nghiệp Của Bạn
-              </span>
-            </h1>
-            
-            <p className="mt-4 text-sm text-slate-300 leading-relaxed font-normal">
-              Kết nối trực tiếp với các chuyên gia tư vấn hàng đầu tại Student Success để sửa CV, hoàn thiện Portfolio, luyện phỏng vấn và hoạch định lộ trình thăng tiến tối ưu nhất.
-            </p>
 
-            <div className="mt-8 space-y-3.5">
-              {[
-                'Đặt lịch 1-1 nhanh chóng & tiện lợi',
-                'Xem đánh giá & profile chi tiết của chuyên gia',
-                'Nhận thông báo lịch hẹn qua email tự động',
-                'Hỗ trợ hình thức tư vấn Online hoặc Offline'
-              ].map((text, i) => (
-                <div key={i} className="flex items-center gap-3 text-xs text-slate-300 font-medium">
-                  <CheckCircle2 className="size-4.5 text-indigo-400 shrink-0" />
-                  <span>{text}</span>
-                </div>
-              ))}
+      <section className="grid w-full grid-cols-1 md:grid-cols-12 min-h-screen">
+        {/* Left minimal marketing panel */}
+        <div className="hidden md:flex md:col-span-6 lg:col-span-6 bg-slate-900 text-white p-10 lg:p-14 flex-col justify-between relative overflow-hidden">
+          {/* Background image overlay */}
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-35 mix-blend-overlay"
+            style={{
+              backgroundImage: `url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop')`
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-900/40 pointer-events-none" />
+
+          {/* Top Logo Header */}
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-indigo-300">
+              <Compass className="size-5" />
             </div>
+            <span className="text-lg font-bold tracking-tight text-white">Student Success</span>
           </div>
-          
-          <div className="relative z-10 flex items-center gap-2 mt-8 pt-6 border-t border-white/10">
-            <Sparkles className="size-4 text-indigo-400" />
-            <p className="text-[11px] text-slate-400 font-medium tracking-wide">
-              Đồng hành cùng học viên MindX vươn tầm sự nghiệp
+
+          {/* Bottom Minimal Heading */}
+          <div className="relative z-10 max-w-lg mb-4 space-y-3">
+            <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight text-white">
+              Mở Khóa Tiềm Năng<br />Nghề Nghiệp
+            </h1>
+            <p className="text-sm text-slate-300 leading-relaxed font-normal">
+              Kết nối với các chuyên gia cố vấn hàng đầu để định hướng tương lai và đạt được mục tiêu học tập, nghề nghiệp của bạn.
             </p>
           </div>
         </div>
 
         {/* Right form panel */}
-        <div className="col-span-12 md:col-span-6 flex flex-col justify-center space-y-6">
-          <nav className="inline-flex rounded-lg border bg-muted/40 p-1 self-start">
+        <div className="col-span-12 md:col-span-6 lg:col-span-6 flex items-center justify-center p-6 md:p-10 bg-slate-50/50 dark:bg-slate-950/50">
+          <div className="w-full max-w-md">
+            <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-xl border border-border/60 transition-all duration-300">
+              {/* Minimal Line Tabs */}
+              {showTabs && (
+                <div className="flex border-b border-border/80 mb-6">
+                  <Link
+                    to="/login"
+                    className={cn(
+                      "flex-1 text-center pb-3 text-sm font-medium transition-all relative",
+                      isLoginPage
+                        ? "text-foreground font-semibold border-b-2 border-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Đăng Nhập
+                  </Link>
+                  <Link
+                    to="/register"
+                    className={cn(
+                      "flex-1 text-center pb-3 text-sm font-medium transition-all relative",
+                      isRegisterPage
+                        ? "text-foreground font-semibold border-b-2 border-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Đăng Ký
+                  </Link>
+                </div>
+              )}
 
-            {navItems.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  'rounded-md px-3 py-1.5 text-sm text-muted-foreground transition',
-                  location.pathname === item.to && 'bg-background text-foreground shadow-sm'
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          <Outlet />
+              <Outlet />
+            </div>
+          </div>
         </div>
       </section>
     </main>
   );
 };
+
+
+

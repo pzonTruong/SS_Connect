@@ -142,8 +142,8 @@ export const AppLayout = () => {
               <div className="size-9 rounded-full bg-slate-100 dark:bg-slate-800 animate-pulse" />
             ) : user ? (
               <>
-                {/* Book Now — hidden for admin */}
-                {user.role !== 'admin' && (
+                {/* Book Now — hidden for admin & expert */}
+                {user.role !== 'admin' && user.role !== 'expert' && (
                   <Link to="/experts" className="hidden sm:block">
                     <Button className="bg-brand-brown hover:bg-[#4E2505] text-white font-semibold text-xs px-4 py-2 rounded-md transition duration-200">
                       Book Now

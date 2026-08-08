@@ -50,7 +50,14 @@ export const ExpertProfilePage = () => {
   const [selectedSlot, setSelectedSlot] = useState<Timeslot | null>(null);
   const [activeDate, setActiveDate] = useState<string>('');
   const [rescheduling, setRescheduling] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string>('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    http.get('/auth/me')
+      .then((res) => setCurrentUserRole(res.data?.role || ''))
+      .catch(() => setCurrentUserRole(''));
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -387,14 +394,20 @@ export const ExpertProfilePage = () => {
               </div>
             )}
 
-            <Button
-              className="w-full font-semibold bg-brand-brown hover:bg-[#4E2505] text-white dark:bg-slate-200 dark:text-slate-950 dark:hover:bg-slate-300 transition-colors duration-200"
-              onClick={handleProceedBooking}
-              disabled={!selectedSlot || rescheduling}
-            >
-              {rescheduling && <Loader2 className="size-4 animate-spin mr-2 shrink-0" />}
-              {rescheduleBookingId ? 'Xác nhận đổi lịch hẹn' : 'Tiến hành đặt lịch'}
-            </Button>
+            {currentUserRole === 'expert' || currentUserRole === 'admin' ? (
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-lg p-3 text-xs text-center text-amber-800 dark:text-amber-300 font-medium">
+                Tài khoản Chuyên gia / Admin không thực hiện đặt lịch tư vấn.
+              </div>
+            ) : (
+              <Button
+                className="w-full font-semibold bg-brand-brown hover:bg-[#4E2505] text-white dark:bg-slate-200 dark:text-slate-950 dark:hover:bg-slate-300 transition-colors duration-200"
+                onClick={handleProceedBooking}
+                disabled={!selectedSlot || rescheduling}
+              >
+                {rescheduling && <Loader2 className="size-4 animate-spin mr-2 shrink-0" />}
+                {rescheduleBookingId ? 'Xác nhận đổi lịch hẹn' : 'Tiến hành đặt lịch'}
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
