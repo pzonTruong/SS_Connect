@@ -24,13 +24,10 @@ export const checkAndSendMeetingReminders = async () => {
     for (const booking of bookings) {
       if (!booking.date || !booking.time) continue;
 
-      // Parse booking start date & time
-      const [year, month, day] = booking.date.split('-').map(Number);
-      const [hours, minutes] = booking.time.split(':').map(Number);
+      // Parse booking start date & time with explicit Asia/Ho_Chi_Minh (+07:00) offset
+      const meetingTime = new Date(`${booking.date}T${booking.time}:00+07:00`);
+      if (isNaN(meetingTime.getTime())) continue;
 
-      if (!year || !month || !day || isNaN(hours) || isNaN(minutes)) continue;
-
-      const meetingTime = new Date(year, month - 1, day, hours, minutes);
       const diffMs = meetingTime.getTime() - now.getTime();
       const diffMinutes = diffMs / (1000 * 60);
 

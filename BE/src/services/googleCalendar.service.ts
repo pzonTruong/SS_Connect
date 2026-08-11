@@ -56,9 +56,10 @@ class GoogleCalendarService {
       const calendar = google.calendar({ version: 'v3', auth });
       const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary';
 
-      // Parse start and end time (default 1 hour session)
-      const startDateTimeStr = `${params.date}T${params.time}:00`;
-      const startDate = new Date(startDateTimeStr);
+      // Parse start and end time with explicit Asia/Ho_Chi_Minh offset (+07:00)
+      // This guarantees exact Vietnam time regardless of server deployment timezone (UTC vs ICT)
+      const startIsoStr = `${params.date}T${params.time}:00+07:00`;
+      const startDate = new Date(startIsoStr);
       const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // +1 hour
 
       // Build detailed description with rich formatting
@@ -84,7 +85,7 @@ class GoogleCalendarService {
         location: params.location || (params.mode === 'online' ? 'Google Meet Online Call' : 'Trực tiếp tại văn phòng'),
         colorId: '9', // Blueberry / Blue color tag for SS-Connect events
         start: {
-          dateTime: startDate.toISOString(),
+          dateTime: startIsoStr,
           timeZone: 'Asia/Ho_Chi_Minh'
         },
         end: {
