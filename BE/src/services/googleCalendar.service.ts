@@ -86,10 +86,10 @@ class GoogleCalendarService {
         if (!isNaN(parsedEnd.getTime()) && parsedEnd.getTime() > startDate.getTime()) {
           endDate = parsedEnd;
         } else {
-          endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // Default +1 hour
+          endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // Default 2 hours session
         }
       } else {
-        endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // Default +1 hour
+        endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // Default 2 hours session
       }
 
       // Build detailed description with rich formatting
