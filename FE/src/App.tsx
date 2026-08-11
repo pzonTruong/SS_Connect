@@ -10,6 +10,7 @@ import { HomePage } from '@/modules/home/pages/HomePage';
 import { ExpertsListPage } from '@/modules/home/pages/ExpertsListPage';
 import { ExpertProfilePage } from '@/modules/home/pages/ExpertProfilePage';
 import { ResourcesPage } from '@/modules/home/pages/ResourcesPage';
+import { PersonalQuizPage } from '@/modules/home/pages/PersonalQuizPage';
 import { ContactPage } from '@/modules/home/pages/ContactPage';
 import { PrivacyPolicyPage } from '@/modules/home/pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from '@/modules/home/pages/TermsOfServicePage';
@@ -41,6 +42,8 @@ function App() {
         <Route path="/experts" element={<ExpertsListPage />} />
         <Route path="/experts/:id" element={<ExpertProfilePage />} />
         <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/quiz" element={<PersonalQuizPage />} />
+        <Route path="/personal-quiz" element={<PersonalQuizPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/terms-of-service" element={<TermsOfServicePage />} />

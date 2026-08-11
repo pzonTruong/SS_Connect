@@ -34,6 +34,7 @@ const navLinks = [
   { to: '/', label: 'Home' },
   { to: '/experts', label: 'Experts' },
   { to: '/resources', label: 'Resources' },
+  { to: '/quiz', label: 'Personal Quiz' },
   { to: '/contact', label: 'Contact' },
 ];
 

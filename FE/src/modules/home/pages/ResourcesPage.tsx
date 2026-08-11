@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Search, BookOpen, Download, ExternalLink, Bookmark, 
-  Clock, Sparkles, FileText, Compass, Heart, GraduationCap, Briefcase
+  Clock, Sparkles, FileText, Compass, Heart, GraduationCap, Briefcase, HelpCircle
 } from 'lucide-react';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -26,6 +26,17 @@ interface Resource {
 }
 
 const RESOURCES_DATA: Resource[] = [
+  {
+    id: 'res-quiz-1',
+    title: 'Personal Quiz - Đánh giá năng lực & Định hướng học tập cá nhân',
+    description: 'Bài trắc nghiệm đánh giá cá nhân giúp xác định mục tiêu học tập, kỹ năng còn thiếu và hỗ trợ nhận tư vấn chuyên sâu. Kết quả được lưu tự động.',
+    category: 'personal',
+    tags: ['Personal Quiz', 'Định hướng', 'Trắc nghiệm', 'Nổi bật'],
+    duration: '5 - 10 phút',
+    updatedAt: '11/08/2026',
+    readUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSe7QQ_AWfahslM5goYZOBrcqUK5FqztjZwHbxWFNOAw9QGlxw/viewform',
+    icon: HelpCircle
+  },
   {
     id: 'res-1',
     title: 'Phương pháp ôn thi hiệu quả (Feynman & Pomodoro)',
