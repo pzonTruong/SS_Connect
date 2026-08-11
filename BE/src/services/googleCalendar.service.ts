@@ -12,7 +12,34 @@ export interface CreateEventParams {
   expertEmail?: string;
   mode: 'online' | 'offline';
   location?: string;
+  status?: string;
 }
+
+/**
+ * Maps booking status to Google Calendar event color IDs:
+ * '5'  - Banana / Yellow (Pending)
+ * '9'  - Blueberry / Blue (Confirmed)
+ * '10' - Basil / Green (Completed)
+ * '8'  - Graphite / Gray (Cancelled)
+ * '11' - Tomato / Red (No show / Rejected)
+ */
+export const getCalendarColorIdByStatus = (status?: string): string => {
+  switch (status) {
+    case 'pending':
+      return '5'; // Yellow
+    case 'confirmed':
+      return '9'; // Blue
+    case 'completed':
+      return '10'; // Green
+    case 'cancelled_student':
+    case 'cancelled_expert':
+      return '8'; // Gray
+    case 'no_show':
+      return '11'; // Red
+    default:
+      return '9'; // Default Blue
+  }
+};
 
 export interface CalendarEventResult {
   eventId?: string;
@@ -109,11 +136,13 @@ class GoogleCalendarService {
         `• Hệ thống SS-Connect chúc bạn có một buổi làm việc hiệu quả!`
       ].filter(Boolean).join('\n');
 
+      const colorId = getCalendarColorIdByStatus(params.status || 'confirmed');
+
       const eventRequestBody: any = {
         summary: `[SS-Connect] [Mã: #${params.bookingId}] ${params.summary}`,
         description: richDescription,
         location: params.location || (params.mode === 'online' ? 'Google Meet Online Call' : 'Trực tiếp tại văn phòng'),
-        colorId: '9', // Blueberry / Blue color tag for SS-Connect events
+        colorId,
         start: {
           dateTime: startDate.toISOString(),
           timeZone: 'Asia/Ho_Chi_Minh'
@@ -187,6 +216,35 @@ class GoogleCalendarService {
     } catch (error: any) {
       console.error('Error creating Google Calendar event:', error?.message || error);
       return null;
+    }
+  }
+
+  /**
+   * Updates an existing Google Calendar event's color and parameters when booking status changes.
+   */
+  async updateCalendarEventStatus(eventId: string, status: string): Promise<boolean> {
+    try {
+      const auth = this.getAuthClient();
+      if (!auth || !eventId) {
+        return false;
+      }
+
+      const calendar = google.calendar({ version: 'v3', auth });
+      const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary';
+      const colorId = getCalendarColorIdByStatus(status);
+
+      await calendar.events.patch({
+        calendarId,
+        eventId,
+        requestBody: {
+          colorId
+        }
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('Error updating Google Calendar event status:', error?.message || error);
+      return false;
     }
   }
 

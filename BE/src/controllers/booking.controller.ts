@@ -327,6 +327,9 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
       googleCalendarService.deleteCalendarEvent(booking.googleEventId).catch(console.error);
       booking.googleEventId = undefined;
       booking.googleEventHtmlLink = undefined;
+    } else if (booking.googleEventId && targetStatus && targetStatus !== oldStatus) {
+      // Sync Google Calendar event color when status changes (e.g. completed, confirmed, no_show)
+      googleCalendarService.updateCalendarEventStatus(booking.googleEventId, targetStatus).catch(console.error);
     }
 
     await booking.save();
