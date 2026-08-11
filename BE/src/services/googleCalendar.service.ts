@@ -56,11 +56,41 @@ class GoogleCalendarService {
       const calendar = google.calendar({ version: 'v3', auth });
       const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary';
 
-      // Parse start and end time with explicit Asia/Ho_Chi_Minh offset (+07:00)
-      // This guarantees exact Vietnam time regardless of server deployment timezone (UTC vs ICT)
-      const startIsoStr = `${params.date}T${params.time}:00+07:00`;
+      // Safely parse start and end time (supports "14:00", "14:00 - 16:00", "Lúc 14:00 - 16:00")
+      let startTimeRaw = params.time ? String(params.time).trim() : '09:00';
+      let endTimeRaw: string | null = null;
+
+      if (startTimeRaw.includes('-')) {
+        const parts = startTimeRaw.split('-').map((s) => s.trim());
+        startTimeRaw = parts[0];
+        endTimeRaw = parts[1];
+      }
+
+      const cleanTime = (t: string) => {
+        const match = t.match(/(\d{1,2}):(\d{2})/);
+        if (match) {
+          const h = match[1].padStart(2, '0');
+          const m = match[2];
+          return `${h}:${m}:00`;
+        }
+        return '09:00:00';
+      };
+
+      const startIsoStr = `${params.date}T${cleanTime(startTimeRaw)}+07:00`;
       const startDate = new Date(startIsoStr);
-      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // +1 hour
+
+      let endDate: Date;
+      if (endTimeRaw) {
+        const endIsoStr = `${params.date}T${cleanTime(endTimeRaw)}+07:00`;
+        const parsedEnd = new Date(endIsoStr);
+        if (!isNaN(parsedEnd.getTime()) && parsedEnd.getTime() > startDate.getTime()) {
+          endDate = parsedEnd;
+        } else {
+          endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // Default +1 hour
+        }
+      } else {
+        endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // Default +1 hour
+      }
 
       // Build detailed description with rich formatting
       const modeText = params.mode === 'online' ? '💻 Trực tuyến (Google Meet)' : '🏢 Trực tiếp (Offline)';
@@ -85,7 +115,7 @@ class GoogleCalendarService {
         location: params.location || (params.mode === 'online' ? 'Google Meet Online Call' : 'Trực tiếp tại văn phòng'),
         colorId: '9', // Blueberry / Blue color tag for SS-Connect events
         start: {
-          dateTime: startIsoStr,
+          dateTime: startDate.toISOString(),
           timeZone: 'Asia/Ho_Chi_Minh'
         },
         end: {
