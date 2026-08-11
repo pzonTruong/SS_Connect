@@ -89,6 +89,7 @@ export const sendBookingConfirmationToStudent = async (
               Yêu cầu đặt lịch của bạn đã được chuyên gia xác nhận thành công. Dưới đây là thông tin chi tiết:
             </p>
             <div style="background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:16px;margin-bottom:20px;">
+              <p style="margin:0 0 8px;font-size:14px;color:#3f3f46;"><b>Mã lịch hẹn:</b> <span style="font-family:monospace;background:#e5e7eb;padding:2px 6px;border-radius:4px;font-weight:bold;color:#1f2937;">#${booking._id}</span></p>
               <p style="margin:0 0 8px;font-size:14px;color:#3f3f46;"><b>Chuyên gia tư vấn:</b> <a href="${expertProfileUrl}" style="color:#0a66c2;text-decoration:underline;font-weight:bold;">${expertName}</a></p>
               <p style="margin:0 0 8px;font-size:14px;color:#3f3f46;"><b>Chủ đề:</b> ${booking.bookingType}</p>
               <p style="margin:0 0 8px;font-size:14px;color:#3f3f46;"><b>Thời gian:</b> ${booking.time} ngày ${booking.date}</p>
@@ -139,6 +140,7 @@ export const sendBookingConfirmationToExpert = async (
               Anh/chị đã xác nhận thành công lịch hẹn tư vấn với học viên <b>${studentName}</b>. Dưới đây là thông tin chi tiết buổi hẹn:
             </p>
             <div style="background:#f0fdf4;border:1px solid #dcfce7;border-radius:8px;padding:16px;margin-bottom:20px;">
+              <p style="margin:0 0 8px;font-size:14px;color:#14532d;"><b>Mã lịch hẹn:</b> <span style="font-family:monospace;background:#dcfce7;padding:2px 6px;border-radius:4px;font-weight:bold;color:#14532d;">#${booking._id}</span></p>
               <p style="margin:0 0 8px;font-size:14px;color:#14532d;"><b>Học viên:</b> ${studentName}</p>
               <p style="margin:0 0 8px;font-size:14px;color:#14532d;"><b>Email học viên:</b> ${booking.studentEmail}</p>
               <p style="margin:0 0 8px;font-size:14px;color:#14532d;"><b>Số điện thoại:</b> ${booking.studentPhone}</p>

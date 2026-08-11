@@ -27,6 +27,7 @@ interface Booking {
   time: string;
   mode: 'online' | 'offline';
   meetingLink?: string;
+  googleEventHtmlLink?: string;
   goals: string;
   issues: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled_student' | 'cancelled_expert' | 'no_show' | 'reschedule_needed';
@@ -272,15 +273,32 @@ export const StudentBookingsPage = () => {
                     <div className="space-y-1">
                       <p className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Tham gia cuộc họp:</p>
                       {booking.mode === 'online' && booking.status !== 'cancelled_student' && booking.status !== 'cancelled_expert' ? (
-                        booking.status === 'confirmed' && booking.meetingLink ? (
-                          <a
-                            href={booking.meetingLink}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-bold text-blue-600 dark:text-blue-400 hover:underline inline-block truncate max-w-[200px]"
-                          >
-                            {booking.meetingLink}
-                          </a>
+                        booking.meetingLink ? (
+                          <div className="flex flex-col gap-1">
+                            <a
+                              href={booking.meetingLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 font-bold text-blue-600 dark:text-blue-400 hover:underline text-xs"
+                            >
+                              <Video className="size-3.5 text-blue-600 dark:text-blue-400" />
+                              <span>{booking.status === 'completed' ? 'Xem lại Google Meet' : 'Tham gia Google Meet'}</span>
+                            </a>
+                            {booking.googleEventHtmlLink && (
+                              <a
+                                href={booking.googleEventHtmlLink}
+                                target="_blank"
+                                rel="noreferrer"
+                                title="Mở lịch trực tiếp trên Google Calendar (Dành cho tài khoản có quyền truy cập Lịch MindX)"
+                                className="text-[11px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline inline-flex items-center gap-1"
+                              >
+                                <Calendar className="size-3 text-slate-400" />
+                                <span>Xem trên Google Calendar (Lịch chung)</span>
+                              </a>
+                            )}
+                          </div>
+                        ) : booking.status === 'completed' ? (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-medium italic">Đã hoàn thành cuộc họp</span>
                         ) : (
                           <span className="text-amber-600 dark:text-amber-400 font-medium italic">Sẽ khởi tạo sau khi duyệt</span>
                         )

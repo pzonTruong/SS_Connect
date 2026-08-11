@@ -16,6 +16,8 @@ export interface BookingDocument extends mongoose.Document {
   time: string; // HH:MM
   mode: 'online' | 'offline';
   meetingLink?: string;
+  googleEventId?: string;
+  googleEventHtmlLink?: string;
   notes?: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled_student' | 'cancelled_expert' | 'no_show' | 'reschedule_needed';
   postConsultationNotes?: string;
@@ -43,6 +45,8 @@ const bookingSchema = new Schema<BookingDocument>(
     time: { type: String, required: true },
     mode: { type: String, enum: ['online', 'offline'], required: true },
     meetingLink: { type: String, trim: true },
+    googleEventId: { type: String, trim: true },
+    googleEventHtmlLink: { type: String, trim: true },
     notes: { type: String, trim: true },
     status: {
       type: String,

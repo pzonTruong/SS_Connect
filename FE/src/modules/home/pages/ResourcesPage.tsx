@@ -29,12 +29,12 @@ const RESOURCES_DATA: Resource[] = [
   {
     id: 'res-1',
     title: 'Phương pháp ôn thi hiệu quả (Feynman & Pomodoro)',
-    description: 'Lộ trình chi tiết áp dụng phương pháp học chủ động Feynman kết hợp quản trị thời gian Pomodoro để bứt phá điểm số học phần.',
+    description: 'Lộ trình chi tiết áp dụng phương pháp học chủ động Feynman kết hợp quản trị thời gian Pomodoro giúp sinh viên bứt phá điểm số học phần.',
     category: 'academic',
     tags: ['Học tập', 'Phương pháp', 'Mẹo ôn thi'],
     duration: '10 phút đọc',
     updatedAt: '12/07/2026',
-    readUrl: '#',
+    readUrl: 'https://topcv.vn/phuong-phap-pomodoro',
     icon: GraduationCap
   },
   {
@@ -45,18 +45,18 @@ const RESOURCES_DATA: Resource[] = [
     tags: ['Nghiên cứu', 'Bài viết', 'Đại học'],
     duration: '15 phút đọc',
     updatedAt: '28/06/2026',
-    readUrl: '#',
+    readUrl: 'https://scholar.google.com/?hl=vi',
     icon: BookOpen
   },
   {
     id: 'res-3',
     title: 'Mẫu CV chuẩn ATS tối giản cho sinh viên mới tốt nghiệp',
-    description: 'Tải xuống tệp tin Word và Google Docs mẫu CV chuyên nghiệp được kiểm chứng vượt qua các bộ lọc tự động của nhà tuyển dụng lớn.',
+    description: 'Tải xuống tệp tin mẫu CV chuyên nghiệp được thiết kế tối giản, kiểm chứng vượt qua các bộ lọc tự động của nhà tuyển dụng lớn.',
     category: 'career',
     tags: ['CV', 'Tuyển dụng', 'Tải xuống'],
     duration: 'Tệp Word/Docs',
     updatedAt: '01/08/2026',
-    downloadUrl: '#',
+    downloadUrl: 'https://www.topcv.vn/mau-cv',
     icon: Briefcase
   },
   {
@@ -67,7 +67,7 @@ const RESOURCES_DATA: Resource[] = [
     tags: ['Phỏng vấn', 'Kỹ năng', 'Sự nghiệp'],
     duration: '20 phút đọc',
     updatedAt: '15/07/2026',
-    readUrl: '#',
+    readUrl: 'https://www.vietnamworks.com/hrinsider/phuong-phap-star-la-gi-cach-chuyen-nghiep-de-chinh-phuc-nha-tuyen-dung.html',
     icon: Compass
   },
   {
@@ -78,7 +78,7 @@ const RESOURCES_DATA: Resource[] = [
     tags: ['Sức khỏe', 'Tâm lý', 'Cân bằng'],
     duration: '8 phút đọc',
     updatedAt: '05/06/2026',
-    readUrl: '#',
+    readUrl: 'https://suckhoedoisong.vn/cham-soc-suc-khoe-tam-ly-cho-hoc-sinh-mua-thi-169230528151527357.htm',
     icon: Heart
   },
   {
@@ -89,7 +89,7 @@ const RESOURCES_DATA: Resource[] = [
     tags: ['Excel', 'Quản lý tài chính', 'Công cụ'],
     duration: 'Bảng tính Excel',
     updatedAt: '10/05/2026',
-    downloadUrl: '#',
+    downloadUrl: 'https://templates.office.com/vi-vn/ng%C3%A2n-s%C3%A1ch',
     icon: FileText
   },
   {
@@ -100,7 +100,7 @@ const RESOURCES_DATA: Resource[] = [
     tags: ['Notion', 'Template', 'Quản lý dự án'],
     duration: 'Notion Template',
     updatedAt: '20/07/2026',
-    downloadUrl: '#',
+    downloadUrl: 'https://www.notion.so/templates/category/students',
     icon: FileText
   },
   {
@@ -111,8 +111,30 @@ const RESOURCES_DATA: Resource[] = [
     tags: ['LinkedIn', 'Cá nhân', 'Mạng lưới'],
     duration: '12 phút đọc',
     updatedAt: '30/07/2026',
-    readUrl: '#',
+    readUrl: 'https://glints.com/vn/blog/cach-tao-tai-khoan-linkedin-chuyen-nghiep/',
     icon: Briefcase
+  },
+  {
+    id: 'res-9',
+    title: 'Tổng hợp 500+ Thuật ngữ Tiếng Anh chuyên ngành IT & Software',
+    description: 'Từ điển thuật ngữ lập trình và phát triển phần mềm thiết yếu cho sinh viên ngành Công nghệ thông tin.',
+    category: 'academic',
+    tags: ['Tiếng Anh', 'Công nghệ', 'Thuật ngữ'],
+    duration: '25 phút đọc',
+    updatedAt: '05/08/2026',
+    readUrl: 'https://developer.mozilla.org/en-US/docs/Glossary',
+    icon: GraduationCap
+  },
+  {
+    id: 'res-10',
+    title: 'Mẫu Slide Powerpoint / Canva thuyết trình đồ án tốt nghiệp',
+    description: 'Bộ sưu tập mẫu slide thuyết trình chuyên nghiệp, chuẩn phong cách hiện đại giúp bài bảo vệ đồ án ấn tượng hơn.',
+    category: 'tools',
+    tags: ['Slide', 'Canva', 'Thuyết trình'],
+    duration: 'Template Canva/PPT',
+    updatedAt: '08/08/2026',
+    downloadUrl: 'https://www.canva.com/vi_vn/thuyet-trinh/mau/education/',
+    icon: Sparkles
   }
 ];
 
@@ -316,6 +338,8 @@ export const ResourcesPage = () => {
                       {resource.downloadUrl ? (
                         <a
                           href={resource.downloadUrl}
+                          target="_blank"
+                          rel="noreferrer"
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-brand-brown hover:bg-[#4E2505] rounded-lg transition duration-200"
                         >
                           <Download className="size-3.5" />
@@ -324,6 +348,8 @@ export const ResourcesPage = () => {
                       ) : (
                         <a
                           href={resource.readUrl}
+                          target="_blank"
+                          rel="noreferrer"
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-brand-navy hover:bg-[#071930] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-lg transition duration-200"
                         >
                           Đọc ngay

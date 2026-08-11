@@ -12,6 +12,7 @@ import {
   sendRescheduleSubmissionToStudent
 } from '../services/email.service';
 import { getVietnamDateString, getDaysDifference } from '../utils/date';
+import { googleCalendarService } from '../services/googleCalendar.service';
 
 // Automatically cancels bookings that have been pending for > 24 hours without expert confirmation
 export const checkAndCancelExpiredBookings = async () => {
@@ -321,6 +322,13 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
       booking.postConsultationNotes = postConsultationNotes;
     }
 
+    // Delete Google Calendar event if booking is cancelled
+    if (isCancelling && booking.googleEventId) {
+      googleCalendarService.deleteCalendarEvent(booking.googleEventId).catch(console.error);
+      booking.googleEventId = undefined;
+      booking.googleEventHtmlLink = undefined;
+    }
+
     await booking.save();
 
     // Send confirmation email to student when transitioning to confirmed
@@ -329,14 +337,37 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
       const expert = await UserModel.findById(booking.expertId);
       const expertName = expert ? (expert.displayName || expert.email.split('@')[0]) : 'Chuyên gia';
 
-      // Generate Google Meet link for online bookings if not present
+      // Sync with Google Calendar API & Generate Google Meet link
+      try {
+        const calResult = await googleCalendarService.createCalendarEvent({
+          bookingId: String(booking._id),
+          summary: `Tư vấn SS_Connect: ${booking.studentName} & ${expertName}`,
+          description: `Buổi tư vấn ${booking.bookingType}\nLĩnh vực: ${booking.major}\nMục tiêu: ${booking.goals}\nVấn đề: ${booking.issues}`,
+          date: booking.date,
+          time: booking.time,
+          studentEmail: booking.studentEmail,
+          expertEmail: expert?.email,
+          mode: booking.mode
+        });
+
+        if (calResult) {
+          if (calResult.eventId) booking.googleEventId = calResult.eventId;
+          if (calResult.htmlLink) booking.googleEventHtmlLink = calResult.htmlLink;
+          if (calResult.meetingLink) booking.meetingLink = calResult.meetingLink;
+        }
+      } catch (err) {
+        console.error('Lỗi sync Google Calendar:', err);
+      }
+
+      // Fallback: Generate mock Google Meet link for online bookings if Google API failed or credentials missing
       if (booking.mode === 'online' && !booking.meetingLink) {
         const p1 = Math.random().toString(36).substring(2, 5);
         const p2 = Math.random().toString(36).substring(2, 6);
         const p3 = Math.random().toString(36).substring(2, 5);
         booking.meetingLink = `https://meet.google.com/${p1}-${p2}-${p3}`;
-        await booking.save();
       }
+
+      await booking.save();
 
       // 1. Lock slot on expert
       if (expert) {

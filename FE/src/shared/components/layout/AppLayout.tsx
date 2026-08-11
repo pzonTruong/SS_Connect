@@ -142,6 +142,26 @@ export const AppLayout = () => {
               <div className="size-9 rounded-full bg-slate-100 dark:bg-slate-800 animate-pulse" />
             ) : user ? (
               <>
+                {/* Quick Access Dashboard for Admin */}
+                {user.role === 'admin' && (
+                  <Link to="/admin-dashboard">
+                    <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs gap-1.5 px-3 py-1.5 rounded-lg shadow-sm transition-all duration-200">
+                      <LayoutDashboard className="size-3.5" />
+                      <span className="hidden sm:inline">Admin Dashboard</span>
+                    </Button>
+                  </Link>
+                )}
+
+                {/* Quick Access Dashboard for Expert */}
+                {user.role === 'expert' && (
+                  <Link to="/expert-dashboard">
+                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 px-3 py-1.5 rounded-lg shadow-sm transition-all duration-200">
+                      <LayoutDashboard className="size-3.5" />
+                      <span className="hidden sm:inline">Expert Dashboard</span>
+                    </Button>
+                  </Link>
+                )}
+
                 {/* Book Now — hidden for admin & expert */}
                 {user.role !== 'admin' && user.role !== 'expert' && (
                   <Link to="/experts" className="hidden sm:block">

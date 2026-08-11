@@ -40,6 +40,7 @@ interface Booking {
   time: string;
   mode: 'online' | 'offline';
   meetingLink?: string;
+  googleEventHtmlLink?: string;
   notes?: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled_student' | 'cancelled_expert' | 'no_show' | 'reschedule_needed';
   postConsultationNotes?: string;
@@ -311,15 +312,32 @@ export const ExpertDashboardPage = () => {
                       <div className="space-y-1">
                         <span className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Tham gia cuộc họp:</span>
                         {booking.mode === 'online' && booking.status !== 'cancelled_student' && booking.status !== 'cancelled_expert' ? (
-                          booking.status === 'confirmed' && booking.meetingLink ? (
-                            <a
-                              href={booking.meetingLink}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="font-bold text-blue-600 dark:text-blue-400 hover:underline block truncate max-w-[180px]"
-                            >
-                              {booking.meetingLink}
-                            </a>
+                          booking.meetingLink ? (
+                            <div className="flex flex-col gap-1">
+                              <a
+                                href={booking.meetingLink}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 font-bold text-blue-600 dark:text-blue-400 hover:underline text-xs"
+                              >
+                                <Video className="size-3.5 text-blue-600 dark:text-blue-400" />
+                                <span>{booking.status === 'completed' ? 'Xem lại Google Meet' : 'Tham gia Google Meet'}</span>
+                              </a>
+                              {booking.googleEventHtmlLink && (
+                                <a
+                                  href={booking.googleEventHtmlLink}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  title="Liên kết quản lý lịch sự kiện trực tiếp trên Google Calendar"
+                                  className="text-[11px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline inline-flex items-center gap-1"
+                                >
+                                  <Calendar className="size-3 text-slate-400" />
+                                  <span>Xem trên Google Calendar</span>
+                                </a>
+                              )}
+                            </div>
+                          ) : booking.status === 'completed' ? (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-medium italic">Đã hoàn thành cuộc họp</span>
                           ) : (
                             <span className="text-amber-600 dark:text-amber-400 font-medium italic">Khởi tạo sau khi xác nhận</span>
                           )
