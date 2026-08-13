@@ -12,6 +12,8 @@ import {
 } from '@/shared/components/ui/dialog';
 import { toast } from 'sonner';
 
+import { authApi } from '@/modules/auth/api/auth.api';
+
 interface Resource {
   id: string;
   title: string;
@@ -158,6 +160,13 @@ export const ResourcesPage = () => {
   const [requestTopic, setRequestTopic] = useState('');
   const [requestDesc, setRequestDesc] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    authApi.getMe()
+      .then((res) => setUserRole(res.data?.role || null))
+      .catch(() => setUserRole(null));
+  }, []);
 
   // Load bookmarks on mount
   useEffect(() => {
@@ -203,6 +212,10 @@ export const ResourcesPage = () => {
   };
 
   const filteredResources = RESOURCES_DATA.filter(res => {
+    if (res.id === 'res-quiz-1' && userRole !== 'user') {
+      return false;
+    }
+
     const matchesSearch = 
       res.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       res.description.toLowerCase().includes(searchQuery.toLowerCase()) ||

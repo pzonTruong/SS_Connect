@@ -42,8 +42,8 @@ function App() {
         <Route path="/experts" element={<ExpertsListPage />} />
         <Route path="/experts/:id" element={<ExpertProfilePage />} />
         <Route path="/resources" element={<ResourcesPage />} />
-        <Route path="/quiz" element={<PersonalQuizPage />} />
-        <Route path="/personal-quiz" element={<PersonalQuizPage />} />
+        <Route path="/quiz" element={<ProtectedRoute><PersonalQuizPage /></ProtectedRoute>} />
+        <Route path="/personal-quiz" element={<ProtectedRoute><PersonalQuizPage /></ProtectedRoute>} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/terms-of-service" element={<TermsOfServicePage />} />

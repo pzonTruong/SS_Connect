@@ -30,11 +30,11 @@ const themeLabels: Record<Theme, string> = {
   system: 'System',
 };
 
-const navLinks = [
+const baseNavLinks = [
   { to: '/', label: 'Home' },
   { to: '/experts', label: 'Experts' },
   { to: '/resources', label: 'Resources' },
-  { to: '/quiz', label: 'Personal Quiz' },
+  { to: '/quiz', label: 'Personal Quiz', studentOnly: true },
   { to: '/contact', label: 'Contact' },
 ];
 
@@ -44,6 +44,13 @@ export const AppLayout = () => {
   const [currentTheme, setCurrentTheme] = useState<Theme>('system');
   const location = useLocation();
   const navigate = useNavigate();
+
+  const navLinks = baseNavLinks.filter((link) => {
+    if (link.studentOnly) {
+      return user?.role === 'user';
+    }
+    return true;
+  });
 
   useEffect(() => {
     setCurrentTheme(getTheme());

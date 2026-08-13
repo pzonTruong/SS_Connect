@@ -1,11 +1,48 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { HelpCircle, ExternalLink, FileSpreadsheet, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
+import { authApi } from '@/modules/auth/api/auth.api';
+import { toast } from 'sonner';
 
 export const PersonalQuizPage = () => {
+  const [loading, setLoading] = useState(true);
+  const [isStudent, setIsStudent] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    authApi.getMe()
+      .then((res) => {
+        if (res.data?.role === 'user') {
+          setIsStudent(true);
+        } else {
+          toast.error('Chỉ tài khoản học viên mới có thể thực hiện Personal Quiz.');
+          navigate('/', { replace: true });
+        }
+      })
+      .catch(() => {
+        toast.error('Vui lòng đăng nhập tài khoản học viên để làm Personal Quiz.');
+        navigate('/login', { replace: true });
+      })
+      .finally(() => setLoading(false));
+  }, [navigate]);
+
   const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSe7QQ_AWfahslM5goYZOBrcqUK5FqztjZwHbxWFNOAw9QGlxw/viewform?embedded=true";
   const directFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSe7QQ_AWfahslM5goYZOBrcqUK5FqztjZwHbxWFNOAw9QGlxw/viewform";
   const sheetUrl = "https://docs.google.com/spreadsheets/d/1V5VQEUz-oYFIhbVUZhfK71FzJTJd6HHOyRAwxB3N3nI/edit?usp=sharing";
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="size-8 rounded-full border-4 border-brand-blue border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isStudent) {
+    return null;
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 py-4">
