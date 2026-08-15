@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HelpCircle, ExternalLink, FileSpreadsheet, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
+import { HelpCircle, ExternalLink, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { authApi } from '@/modules/auth/api/auth.api';
@@ -30,7 +30,6 @@ export const PersonalQuizPage = () => {
 
   const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSe7QQ_AWfahslM5goYZOBrcqUK5FqztjZwHbxWFNOAw9QGlxw/viewform?embedded=true";
   const directFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSe7QQ_AWfahslM5goYZOBrcqUK5FqztjZwHbxWFNOAw9QGlxw/viewform";
-  const sheetUrl = "https://docs.google.com/spreadsheets/d/1V5VQEUz-oYFIhbVUZhfK71FzJTJd6HHOyRAwxB3N3nI/edit?usp=sharing";
 
   if (loading) {
     return (
@@ -67,12 +66,6 @@ export const PersonalQuizPage = () => {
               <Button className="bg-sky-500 hover:bg-sky-600 text-white font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg transition">
                 Mở Google Form tab mới
                 <ExternalLink className="size-4" />
-              </Button>
-            </a>
-            <a href={sheetUrl} target="_blank" rel="noreferrer">
-              <Button variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 backdrop-blur-sm transition">
-                Xem Google Sheet kết quả
-                <FileSpreadsheet className="size-4 text-emerald-400" />
               </Button>
             </a>
           </div>
