@@ -1,4 +1,5 @@
 import { Sparkles } from 'lucide-react';
+import mindxOgLogo from '@/assets/mindx_og_logo.png';
 
 export const HeroSection = () => {
   return (
@@ -29,11 +30,11 @@ export const HeroSection = () => {
         
         {/* Right illustration / photo */}
         <div className="lg:col-span-5 relative">
-          <div className="relative rounded-3xl overflow-hidden shadow-2xl aspect-[4/3] bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center">
             <img 
-              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80" 
-              alt="Định hướng sự nghiệp cùng chuyên gia" 
-              className="object-cover w-full h-full hover:scale-105 transition-transform duration-700" 
+              src={mindxOgLogo} 
+              alt="MindX Logo" 
+              className="w-full h-auto object-contain rounded-3xl hover:scale-105 transition-transform duration-700" 
             />
           </div>
         </div>
